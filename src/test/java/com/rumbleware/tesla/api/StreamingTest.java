@@ -1,5 +1,6 @@
 package com.rumbleware.tesla.api;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -11,6 +12,7 @@ public class StreamingTest {
 
 
     @Test
+    @Ignore
     public void testStream() throws Exception {
 
         UsernamePasswordCredentials credentials = new UsernamePasswordCredentials("george.scott@gmail.com", "kyrdn3yt3sla");

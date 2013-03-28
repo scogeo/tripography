@@ -35,6 +35,7 @@ public class VehicleTest {
     }
 
     @Test
+    @Ignore
     public void testDriveState() throws Exception {
         UsernamePasswordCredentials credentials = new UsernamePasswordCredentials("george.scott@gmail.com", "kyrdn3yt3sla");
 

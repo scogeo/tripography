@@ -1,6 +1,7 @@
 package com.rumbleware.tesla.api;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -8,6 +9,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author gscott
  */
+@Ignore
 public class PortalTest {
 
     private Portal portal;

@@ -1,6 +1,7 @@
 package com.rumbleware.tesla;
 
 import com.rumbleware.tesla.api.UsernamePasswordCredentials;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
@@ -13,6 +14,7 @@ import static org.junit.Assert.assertEquals;
 public class VehiclePollerTest {
 
     @Test
+    @Ignore
     public void testBasic() throws Exception {
         UsernamePasswordCredentials credentials = new UsernamePasswordCredentials("george.scott@gmail.com", "kyrdn3yt3sla");
 
