@@ -1,35 +1,21 @@
 package com.tripography.web.config;
 
-import com.amazonaws.auth.AWSCredentials;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
+import com.rumbleware.web.config.BaseApplicationConfigurationSupport;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.authentication.dao.ReflectionSaltSource;
-import org.springframework.security.authentication.encoding.ShaPasswordEncoder;
-import org.springframework.security.core.userdetails.UserDetailsService;
-
-import javax.validation.Validation;
-import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
-import java.util.Properties;
 
 /**
  * @author gscott
  */
 @Configuration
+/*
 @ComponentScan({"com.tripography.web.controller",
         "com.tripography.accounts",
         "com.tripography.web.security"})
-public class AppConfig {
+        */
+public class TripographyConfig extends BaseApplicationConfigurationSupport {
 
-    private static final Logger logger = LoggerFactory.getLogger(AppConfig.class);
+    /*
+    private static final Logger logger = LoggerFactory.getLogger(TripographyConfig.class);
 
     @Autowired
     private UserDetailsService userDetailsService;
@@ -37,6 +23,7 @@ public class AppConfig {
     @Autowired
     private AWSCredentials defaultAWSCredentials;
 
+*/
     /*
     @Bean
     public StorageService getProfileImageStorageService() {
@@ -45,6 +32,8 @@ public class AppConfig {
         return storageService;
     }
     */
+
+    /*
 
     @Bean(name="authenticationProvider")
     public AuthenticationProvider getAuthenticationProvider() {

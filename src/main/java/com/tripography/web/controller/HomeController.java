@@ -1,8 +1,8 @@
 package com.tripography.web.controller;
 
+import com.rumbleware.web.security.SaltedUser;
 import com.tripography.accounts.Account;
 import com.tripography.accounts.AccountService;
-import com.tripography.web.security.SaltedUser;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.beans.factory.annotation.Autowired;

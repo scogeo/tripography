@@ -9,7 +9,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author gscott
  */
-@Ignore
+
 public class PortalTest {
 
     private Portal portal;
@@ -61,6 +61,12 @@ public class PortalTest {
         System.out.println("vehicle state is " + vd);
     }
 
+    @Test
+    public void testVehicleState() throws Exception {
+        VehicleState vehicleState = portal.vehicleState(vehicle.getId());
+
+        System.out.println("State is " + vehicleState);
+    }
 
 
 }

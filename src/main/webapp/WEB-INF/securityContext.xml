@@ -34,7 +34,7 @@
 
         <logout logout-url="/auth/logout"/>
 
-        <remember-me services-ref="rememberMeServices" key="token"  />
+        <remember-me services-ref="rememberMeServices" key="token"/>
     </http>
 
     <authentication-manager alias="authenticationManager">

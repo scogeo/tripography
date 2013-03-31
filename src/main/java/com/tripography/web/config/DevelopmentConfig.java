@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Profile;
 /**
  * @author gscott
  */
-@Configuration
+//@Configuration
 @Profile(Profiles.DEV)
 public class DevelopmentConfig extends EnvironmentConfig {
 
