@@ -1,0 +1,24 @@
+extends site
+
+block content
+  .row
+    .span12
+      .welcome-signin.well
+        .row
+          .span4.offset2
+            h3 Sign in to fitunity.
+            loginUrl = urlHelper.secureUrl("/auth/login/verify")
+            +form(loginUrl)(id="signinform", prompt)
+              fieldset
+                +prompting_input(type="text", name="username", data-prompt="Username").input-xlarge
+                +prompting_input(type="password", name="password", data-prompt="Password").input-xlarge
+                if error
+                  span(style="color:red;") ✘&nbsp;Invalid username or password.
+                +grouped_checkbox(id="rememberme", name="remember_me", value="1", description="Remember me")
+                script(type="text/javascript")
+                  $("#rememberme").prop('checked', $.cookie('_remember_me') == 'true')
+                  $("#rememberme").change(function() {
+                    $.cookie('_remember_me', $(this).is(':checked') ? 'true' : 'false', { expires: 365, path: '/' });
+                  });
+                button(type="submit", name="submit", value="Login", class="btn btn-primary") Sign In
+

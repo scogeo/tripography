@@ -1,0 +1,20 @@
+extends site
+
+block content
+  .row
+    .span6
+      .hero-unit
+        h1 Join today.
+        p <em>Track your trips.</em>
+        p Drive smarter.
+    .span6
+      .signup.well
+        h3 Sign Up
+        +form("/signup").form-horizontal
+          fieldset
+            +grouped_input(type="text", id="fullname", name="fullname", label="Full Name").input-large
+            +grouped_input(type="text", id="email", name="email", label="Email").input-large
+            +grouped_input(type="password", id="password", name="password", label="Password").input-large
+            +grouped_input(type="text", id="username", name="username", label="Username").input-large
+            +grouped_input(type="text", id="invite", name="invite", label="Invite Code").input-large
+          button.btn.btn-primary(type="submit") Create account

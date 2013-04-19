@@ -1,0 +1,43 @@
+include mixins/resources
+include mixins/forms
+
+mixin nav_item(href, title)
+  if href == httpRequest.getRequestURI()
+    li.active
+      a(href="#{href}", style="position:relative;")
+        | #{title}
+        i.icon-chevron-right.icon-white(style="position:absolute; right:4px; top:4px;")
+  else
+    li
+      a(href="#{href}")= title
+
+doctype 5
+html(lang = "en")
+  head
+    meta(charset="utf-8")
+
+    //- Tell IE to render in latest and greatest mode
+    meta(http-equiv="X-UA-Compatible", content="IE=edge")
+
+    block title
+      if title
+        title= title
+      else
+        title tripography
+
+    block description
+      if description
+        meta(name="description", content=description)
+
+    block viewport
+
+    link(rel="shortcut icon", href="#{assets.imageURL('favicon.ico')}", type="image/x-icon")
+
+    block style
+      +css("bootstrap")
+      +css("responsive")
+
+    block scripts
+
+
+  block body

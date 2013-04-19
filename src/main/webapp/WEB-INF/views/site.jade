@@ -1,0 +1,34 @@
+extends bootstrap
+
+append style
+  +css("site")
+
+block body
+  body
+    .navbar.navbar-top
+      .navbar-inner
+        .container
+          a.brand(href="/"): +img("logo_grey_136x30.png", 136, 30)
+          if security.isAuthenticated()
+            ul.nav
+            ul.nav.pull-right
+              li.dropdown
+                a.dropdown-toggle(href="#", data-toggle="dropdown") Account
+                  b.caret
+                ul.dropdown-menu
+                  li
+                    a(href="/settings/account") Settings
+                  li.divider
+                  li
+                    a(href="/auth/logout") Sign out
+
+
+    .container
+      block content
+
+    script(src="#{assets.scriptURL('loader.min.js')}", data-main="#{assets.scriptURL('core')}")
+
+    //-+script("core")
+
+    unless environment.development
+      include includes/tracking
