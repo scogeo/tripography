@@ -1,0 +1,2 @@
+include = jquery, app, forms
+require = app/boot
