@@ -1,1 +1,27 @@
-h1 hello
+
+extends site
+
+block content
+  .row
+    .span8
+      .hero-unit.hero-invite
+        h1 Driving Evolved.
+        p Track your trips. Drive smarter.
+        .invite-request
+          p Tesla Model S Owner?
+          p Request an invitation to join tripography.
+          +form("/invite/request").form-inline(id="inviteform", prompt)
+            +prompting_input(type="text", name="email", data-prompt="Email").input-xlarge
+            | &nbsp;
+            button(type="submit").btn.btn-primary Request Invitation
+    .span4
+      .welcome-signin.well
+        h3 Sign In
+        loginUrl = urlHelper.secureUrl("/auth/login/verify")
+        +form(loginUrl)(id="signinform", prompt)
+          fieldset
+            +prompting_input(type="text", name="username", data-prompt="Username").input-large
+            +prompting_input(type="password", name="password", data-prompt="Password").input-large
+            +grouped_checkbox(id="rememberme", name="remember_me", value="1", description="Remember me", cookie="_remember_me")
+            button(type="submit", name="submit", value="Login", class="btn") Sign In
+

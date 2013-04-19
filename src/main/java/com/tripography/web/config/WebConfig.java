@@ -8,6 +8,8 @@ import org.springframework.context.annotation.Configuration;
  * @author gscott
  */
 @Configuration
-@ComponentScan({"com.tripography.web.controller"})
+@ComponentScan({"com.tripography.web.controller",
+                "com.rumbleware.web.config",
+                "com.rumbleware.asset.controller"})
 public class WebConfig extends BaseWebAppConfigurationSupport {
 }

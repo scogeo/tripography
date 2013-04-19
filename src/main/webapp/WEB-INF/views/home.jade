@@ -1,1 +1,13 @@
-h1 hello
+
+extends site
+
+block content
+  .row
+    .span4
+      .well
+        .profile-sidebar
+          h3.fullname= account.fullname
+          h4.username= account.username
+    .span8
+      .well
+        p feed goes here

@@ -1,0 +1,11 @@
+extends ../site
+
+block content
+  .row
+    .span4
+      .well(style="padding: 8px 0;")
+        ul.nav.nav-list
+          li.nav-header Vehicles
+          +nav_item("/vehicles/register", "Register")
+    .span8
+      block panel

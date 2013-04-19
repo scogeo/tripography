@@ -1,0 +1,9 @@
+extends vehicle
+
+block panel
+  h1 My Tesla login
+  +form("")(id="signinform", prompt)
+    fieldset
+      +prompting_input(type="text", name="username", data-prompt="Username").input-xlarge
+      +prompting_input(type="password", name="password", data-prompt="Password").input-xlarge
+      button(type="submit", name="submit", value="Login", class="btn btn-primary") Sign In
