@@ -1,0 +1,11 @@
+mixin img(name, width, height)
+  img(src="#{assets.imageURL(name)}", width="#{width}", height="#{height}")
+
+mixin style(name)
+  link(rel="stylesheet", href="#{assets.styleURL(name)}", type="text/css")
+
+mixin css(name)
+  link(rel="stylesheet", href="#{assets.styleURL(name)}", type="text/css")
+
+mixin script(name)
+  | !{assets.script(name)}

@@ -1,0 +1,15 @@
+
+extends ../site
+
+block content
+  .row
+    .span12
+      .hero-unit.hero-invite
+        h1 Fitness Evolved.
+        p Track your fitness. Inspire your friends. Transform your life.
+        .invite-request
+          p Request an invitation to join Fitunity.
+          +form("/invite/request").form-inline
+            input(type="text", name="email").input-xlarge
+            | &nbsp;
+            button(type="submit").btn.btn-primary Request Invitation

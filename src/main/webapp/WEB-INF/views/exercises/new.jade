@@ -1,0 +1,14 @@
+extends ../site
+
+block content
+  .row
+    .span6
+      .hero-unit
+        h1 Add an Exercise
+    .span6
+      .signup.well
+        h3 Sign Up
+        +form("/exercises/new").form-horizontal
+          fieldset
+            +grouped_input(type="text", id="canonical", name="canonical", label="Canonical Name").input-large
+          button.btn.btn-primary(type="submit") Add exercise

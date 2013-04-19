@@ -1,0 +1,39 @@
+extends ../site
+
+block content
+  .row
+    h2 Active Profiles
+    p
+      each profile in environment.activeProfiles
+        code= profile
+        | &nbsp;
+    h2 System Environment
+    table.table.table-bordered.table-striped
+      colgroup
+        col.span4
+        col.span8
+      thead
+        tr
+          th Name
+          th Value
+      tbody
+        each property in system_env.keySet()
+          tr
+            td= property
+            td= system_env[property]
+
+
+    h2 System Properties
+    table.table.table-bordered.table-striped
+      colgroup
+        col.span4
+        col.span8
+      thead
+        tr
+          th Name
+          th Value
+      tbody
+        each property in system_properties.keySet()
+          tr
+            td= property
+            td= system_properties[property]

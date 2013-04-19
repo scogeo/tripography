@@ -1,0 +1,35 @@
+
+mixin form(action)
+  form(method="POST", action="#{action}", id=attributes.id, class=attributes.class, data-require-elem="forms/autoprompt")
+    block
+    input(name="requestToken", type="hidden", value="#{httpRequest.getSession().getAttribute("requestToken")}")
+
+mixin grouped_input
+  .control-group
+    if attributes.id && attributes.label
+      label.control-label(for=attributes.id)= attributes.label
+    .controls
+      input(id=attributes.id, type=attributes.type, class=attributes.class, name=attributes.name, value=attributes.value)
+      if attributes.help
+        p.help-block= attributes.help
+
+mixin grouped_checkbox
+  .control-group
+    if attributes.label
+      label.control-label= attributes.label
+    .controls
+      label.checkbox
+        if attributes.cookie
+          input(id=attributes.id, type="checkbox", class=attributes.class, name=attributes.name, value=attributes.value,
+                checked=attributes.checked, data-require-elem="forms/cookie-input", data-cookie=attributes.cookie)
+        else
+          input(id=attributes.id, type="checkbox", class=attributes.class, name=attributes.name, value=attributes.value,
+            checked=attributes.checked)
+        span= attributes.description
+      if attributes.help
+        p.help-block= attributes.help
+
+mixin prompting_input
+  .prompting-input
+    input(attributes)
+

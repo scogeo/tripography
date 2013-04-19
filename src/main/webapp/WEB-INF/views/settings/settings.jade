@@ -1,0 +1,13 @@
+extends ../site
+
+block content
+  .row
+    .span4
+      .well(style="padding: 8px 0;")
+        ul.nav.nav-list
+          li.nav-header Settings
+          +nav_item("/settings/account", "Account")
+          +nav_item("/settings/profile", "Profile")
+          +nav_item("/settings/password", "Password")
+    .span8
+      block settings
