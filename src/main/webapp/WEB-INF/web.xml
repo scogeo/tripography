@@ -13,6 +13,10 @@
         <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
     </listener>
 
+    <listener>
+        <listener-class>com.rumbleware.web.executors.ExecutorContextListener</listener-class>
+    </listener>
+
   <!--  <listener>
         <listener-class>com.fitunity.web.security.CSRFSessionListener</listener-class>
     </listener>

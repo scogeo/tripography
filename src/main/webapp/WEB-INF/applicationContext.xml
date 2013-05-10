@@ -16,6 +16,7 @@
 
     <import resource="securityContext.xml"/>
 
+    <!--
     <mongo:mongo id="mongo" host="${mongodb.host}" />
 
     <bean id="mongoTypeMapper" class="org.springframework.data.mongodb.core.convert.DefaultMongoTypeMapper">
@@ -23,6 +24,18 @@
     </bean>
 
     <mongo:db-factory id="mongoDbFactory" dbname="${mongodb.db}" mongo-ref="mongo"/>
+
+-->
+    <!--
+    <mongo:mapping-converter>
+        <mongo:custom-converters>
+            <mongo:converter>
+                <bean class="com.tripography.providers.VehicleProviderReadConverter"/>
+            </mongo:converter>
+        </mongo:custom-converters>
+    </mongo:mapping-converter>
+    -->
+    <!--
 
     <bean id="mongoMappingContext" class="org.springframework.data.mongodb.core.mapping.MongoMappingContext" />
 
@@ -42,5 +55,7 @@
     </bean>
 
     <mongo:repositories base-package="com.tripography"/>
+
+    -->
 
 </beans>

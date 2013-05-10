@@ -18,7 +18,7 @@ public class VehiclePoller {
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-    private final Vehicle vehicle;
+    private final TeslaVehicle vehicle;
 
     /**
      * Polls the vehicle stats.
@@ -39,7 +39,7 @@ public class VehiclePoller {
      * Other streaming
      */
 
-    public VehiclePoller(Vehicle vehicle) {
+    public VehiclePoller(TeslaVehicle vehicle) {
         this.vehicle = vehicle;
         long startDelay = 0; // Should randomize
 

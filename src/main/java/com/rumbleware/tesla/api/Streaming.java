@@ -1,6 +1,7 @@
 package com.rumbleware.tesla.api;
 
 import com.ning.http.client.*;
+import com.rumbleware.web.executors.SharedExecutors;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBufferIndexFinder;
 import org.jboss.netty.buffer.ChannelBuffers;
@@ -46,6 +47,8 @@ public class Streaming {
                 .build();
 
         builder.setRealm(realm);
+        builder.setExecutorService(SharedExecutors.executorService());
+        builder.setScheduledExecutorService(SharedExecutors.scheduledExecutorService());
        // builder.setConnectionTimeoutInMs(5 * 60 * 1000);
         builder.setRequestTimeoutInMs(5 * 60 * 1000);
         builder.setConnectionTimeoutInMs(5 * 60 * 1000);
@@ -61,20 +64,23 @@ public class Streaming {
      *
      * @param handler
      */
-    public void stream(final StreamDataHandler handler) {
+    public void stream2(final StreamDataHandler handler) {
 
-        System.out.println("opengin stream!!!");
+        logger.info("opengin stream!!!");
 
         // allocate 1k for now.  May need to tune based on number of streams/size of data.
         final ChannelBuffer channelBuffer = ChannelBuffers.dynamicBuffer(1024);
 
         try {
 
+            RequestBuilder builder = new RequestBuilder();
+
+
             asyncClient.prepareGet(scheme + "://" + hostname + "/stream/" + vehicleId + "/?values=speed,odometer,soc,elevation,est_heading,est_lat,est_lng,power,shift_state").execute(new AsyncHandler<Object>() {
                 @Override
                 public void onThrowable(Throwable t) {
                     handler.exceptionOccured(t);
-                    System.out.println("Got a throwable " + t);
+                    logger.info("Got a throwable " + t);
                     t.printStackTrace();
                 }
 
@@ -92,8 +98,17 @@ public class Streaming {
                         }
                         String value = channelBuffer.toString(0, pos - 1, Charset.forName("utf-8"));
 
-                        System.out.println("Got value '" + value + "'");
+                        logger.info("Got value '" + value + "'");
 
+                        String[] values = value.split(",", -1);
+
+                        StreamData data = new StreamData(values);
+
+                        boolean stop = handler.handleData(data);
+
+                        if (stop) {
+                            return STATE.ABORT;
+                        }
                         channelBuffer.readBytes(pos);
                         channelBuffer.discardReadBytes();
 
@@ -104,33 +119,38 @@ public class Streaming {
 
                 @Override
                 public STATE onStatusReceived(HttpResponseStatus responseStatus) throws Exception {
-                    System.out.println("Got status " + responseStatus);
-                    System.out.println("status code is " + responseStatus.getStatusCode());
+                    logger.info("Got status " + responseStatus);
+                    logger.info("status code is " + responseStatus.getStatusCode());
                     return STATE.CONTINUE;
                 }
 
                 @Override
                 public STATE onHeadersReceived(HttpResponseHeaders headers) throws Exception {
-                    System.out.println("got headers " + headers);
-                    System.out.println("headers are " + headers.getHeaders());
+                    logger.info("got headers " + headers);
+                    logger.info("headers are " + headers.getHeaders());
                     return STATE.CONTINUE;
                 }
 
                 @Override
                 public Object onCompleted() throws Exception {
-                    System.out.println("completed!!!");
+                    logger.info("completed!!!");
+                    handler.streamClosed();
                     return null;
                 }
             });
         }
         catch (IOException e) {
-            System.out.println("caugh exception");
+            logger.info("caugh exception");
             throw new IllegalStateException(e);
         }
 
-        System.out.println("stream done");
+        logger.info("stream done");
 
 
+    }
+
+    public void close() {
+        asyncClient.close();
     }
 
 }

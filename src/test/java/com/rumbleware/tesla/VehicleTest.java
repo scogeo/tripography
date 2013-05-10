@@ -1,6 +1,6 @@
 package com.rumbleware.tesla;
 
-import com.rumbleware.tesla.api.CommandResponse;
+import com.rumbleware.tesla.api.Portal;
 import com.rumbleware.tesla.api.UsernamePasswordCredentials;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -15,6 +15,8 @@ import static org.junit.Assert.assertEquals;
 public class VehicleTest {
 
 
+    Portal portal = new Portal();
+
 
     @Ignore
     @Test
@@ -23,11 +25,11 @@ public class VehicleTest {
 
         //credentials.sign(null);
 
-        List<Vehicle> vehicles = VehicleFactory.getVehicles(credentials);
+        List<TeslaVehicle> vehicles = VehicleFactory.getVehicles(portal, credentials);
 
         assertEquals(1, vehicles.size());
 
-        Vehicle vehicle = vehicles.get(0);
+        TeslaVehicle vehicle = vehicles.get(0);
 
         //vehicle.honkHorn();
 
@@ -41,11 +43,11 @@ public class VehicleTest {
 
         //credentials.sign(null);
 
-        List<Vehicle> vehicles = VehicleFactory.getVehicles(credentials);
+        List<TeslaVehicle> vehicles = VehicleFactory.getVehicles(portal, credentials);
 
         assertEquals(1, vehicles.size());
 
-        Vehicle vehicle = vehicles.get(0);
+        TeslaVehicle vehicle = vehicles.get(0);
 
         vehicle.driveState();
     }

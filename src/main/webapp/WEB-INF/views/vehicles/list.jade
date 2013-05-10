@@ -1,0 +1,7 @@
+extends vehicle
+
+block panel
+  h1 My Vehicles
+  ul
+    each vehicle in vehicles
+      li= vehicle.VIN

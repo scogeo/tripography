@@ -9,9 +9,11 @@ public class StreamData {
     private final Double speed;
     private final Double odometer;
     private final Double soc;
+    private final Double heading;
     private final Double altitude;
     private final Double latitude;
     private final Double longitude;
+    private final Double power;
     private final String shiftState;
 
 
@@ -28,8 +30,10 @@ public class StreamData {
         odometer = parseDouble(values[index++], null);
         soc = parseDouble(values[index++], null);
         altitude = parseDouble(values[index++], null);
+        heading = parseDouble(values[index++], null);
         latitude = parseDouble(values[index++], null);
         longitude = parseDouble(values[index++], null);
+        power = parseDouble(values[index++], 0.0);
         shiftState = values[index++];
 
 
@@ -40,5 +44,23 @@ public class StreamData {
             return defaultValue;
         }
         return Double.parseDouble(value);
+    }
+
+    public Double getOdometer() {
+        return odometer;
+    }
+
+    @Override
+    public String toString() {
+        return "StreamData{" +
+                "timestamp=" + timestamp +
+                ", speed=" + speed +
+                ", odometer=" + odometer +
+                ", soc=" + soc +
+                ", altitude=" + altitude +
+                ", latitude=" + latitude +
+                ", longitude=" + longitude +
+                ", shiftState='" + shiftState + '\'' +
+                '}';
     }
 }

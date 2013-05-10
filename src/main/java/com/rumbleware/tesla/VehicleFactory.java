@@ -12,16 +12,14 @@ import java.util.List;
  */
 public abstract class VehicleFactory {
 
-    public static List<Vehicle> getVehicles(PortalCredentials credentials) {
+    public static List<TeslaVehicle> getVehicles(Portal portal, PortalCredentials credentials) {
 
-        Portal portal = new Portal(credentials);
+        VehicleDescriptor[] descriptors = portal.vehicles(credentials);
 
-        VehicleDescriptor[] descriptors = portal.vehicles();
-
-        List<Vehicle> vehicles = new ArrayList<Vehicle>(descriptors.length);
+        List<TeslaVehicle> vehicles = new ArrayList<TeslaVehicle>(descriptors.length);
 
         for (VehicleDescriptor descriptor : descriptors) {
-            vehicles.add(new Vehicle(descriptor, portal));
+            vehicles.add(new TeslaVehicle(descriptor, credentials, portal));
         }
 
         return vehicles;

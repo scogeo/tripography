@@ -1,5 +1,7 @@
 package com.rumbleware.tesla.api;
 
+import com.ning.http.client.*;
+import com.rumbleware.web.executors.SharedExecutors;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
@@ -8,9 +10,16 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.LoggingFilter;
 import com.sun.xml.internal.ws.server.StatefulInstanceResolver;
 import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBufferIndexFinder;
+import org.jboss.netty.buffer.ChannelBuffers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.List;
 
 /**
@@ -18,19 +27,19 @@ import java.util.List;
  */
 public class Portal {
 
+    private static final Logger logger = LoggerFactory.getLogger(Portal.class);
+
     private final Client restClient;
 
-    private final PortalCredentials credentials;
+    private final AsyncHttpClient asyncClient;
 
-    public static final String DEFAULT_HOST = "portal.vn.teslamotors.com";
-    public static final String DEFAULT_SCHEME = "https";
+    public static final String DEFAULT_PORTAL_HOST = "https://portal.vn.teslamotors.com";
+    public static final String DEFAULT_STREAMING_HOST = "https://streaming.vn.teslamotors.com";
 
     public static final String USER_CREDENTIAL_COOKIE = "user_credentials";
 
-    private String host;
-    private String protocol;
-
-    private List<NewCookie> loginCookies;
+    private final String portalHost;
+    private final String streamingHost;
 
     private final VehicleRequest<VehicleDescriptor> vehicleById = new VehicleRequest<VehicleDescriptor>(VehicleDescriptor.class);
 
@@ -46,24 +55,35 @@ public class Portal {
     private final VehicleSimpleCommand honkHornCommand = new VehicleSimpleCommand("honk_horn");
     private final VehicleSimpleCommand wakeupCommand = new VehicleSimpleCommand("wake_up");
 
-    public Portal(PortalCredentials credentials) {
-        this(credentials, DEFAULT_HOST, DEFAULT_SCHEME);
+    public Portal() {
+        this(DEFAULT_PORTAL_HOST, DEFAULT_STREAMING_HOST);
     }
 
-    public Portal(PortalCredentials credentials, String host, String protocol) {
-        this.credentials = credentials;
-        this.host = host;
-        this.protocol = protocol;
+    public Portal(String portalHost, String streamingHost) {
+        this.portalHost = portalHost;
+        this.streamingHost = streamingHost;
 
         ClientConfig cc = new DefaultClientConfig();
         cc.getClasses().add(JacksonJsonProvider.class);
 
         restClient = Client.create(cc);
-        restClient.addFilter(new LoggingFilter(System.out));
+        //restClient.addFilter(new LoggingFilter(System.out));
+
+        AsyncHttpClientConfig.Builder builder = new AsyncHttpClientConfig.Builder();
+
+        builder.setExecutorService(SharedExecutors.executorService());
+        builder.setScheduledExecutorService(SharedExecutors.scheduledExecutorService());
+        // builder.setConnectionTimeoutInMs(5 * 60 * 1000);
+        builder.setRequestTimeoutInMs(5 * 60 * 1000);
+        builder.setConnectionTimeoutInMs(5 * 60 * 1000);
+        builder.setIdleConnectionTimeoutInMs(5 * 60 * 1000);
+
+        asyncClient = new AsyncHttpClient(builder.build());
+
     }
 
-    public VehicleDescriptor[] vehicles() {
-        WebResource.Builder resource = restClient.resource(protocol + "://" + host + "/vehicles").getRequestBuilder();
+    public VehicleDescriptor[] vehicles(PortalCredentials credentials) {
+        WebResource.Builder resource = restClient.resource(portalHost + "/vehicles").getRequestBuilder();
 
         credentials.sign(resource);
 
@@ -74,40 +94,146 @@ public class Portal {
     }
 
 
-    public VehicleDescriptor vehicle(String id) {
-        return vehicleById.execute(id);
+    public VehicleDescriptor vehicle(final PortalCredentials credentials, String id) {
+        return vehicleById.execute(credentials, id);
     }
 
-    public CommandResponse mobileEnabled(String id) {
-        return mobileEnabled.execute(id);
+    public CommandResponse mobileEnabled(final PortalCredentials credentials, String id) {
+        return mobileEnabled.execute(credentials, id);
     }
 
-    public CommandResponse honkHorn(String id) {
-        return honkHornCommand.execute(id);
+    public CommandResponse honkHorn(final PortalCredentials credentials, String id) {
+        return honkHornCommand.execute(credentials, id);
     }
 
-    public ClimateState climateState(String id) {
-        return climateStateCommand.execute(id);
+    public ClimateState climateState(final PortalCredentials credentials, String id) {
+        return climateStateCommand.execute(credentials, id);
     }
 
-    public ChargeState chargeState(String id) {
-        return chargeStateCommand.execute(id);
+    public ChargeState chargeState(final PortalCredentials credentials, String id) {
+        return chargeStateCommand.execute(credentials, id);
     }
 
-    public DriveState driveState(final String id) {
-        return driveStateCommand.execute(id);
+    public DriveState driveState(final PortalCredentials credentials, final String id) {
+        return driveStateCommand.execute(credentials, id);
     }
 
-    public VehicleState vehicleState(final String id) {
-        return vehicleStateCommand.execute(id);
+    public VehicleState vehicleState(final PortalCredentials credentials, final String id) {
+        return vehicleStateCommand.execute(credentials, id);
     }
 
-    public CommandResponse wakeUp(final String id) {
-        return wakeupCommand.execute(id);
+    public CommandResponse wakeUp(final PortalCredentials credentials, final String id) {
+        return wakeupCommand.execute(credentials, id);
     }
 
-    public GuiSettings guiSettings(final String id) {
-        return guiSettingsCommand.execute(id);
+    public GuiSettings guiSettings(final PortalCredentials credentials, final String id) {
+        return guiSettingsCommand.execute(credentials, id);
+    }
+
+    /**
+     * Other stream parameters:
+     *   range
+     *
+     * @param handler
+     */
+    public void stream(final PortalCredentials credentials, final VehicleDescriptor descriptor, final StreamDataHandler handler) {
+
+        logger.info("opengin stream!!!");
+
+        // allocate 1k for now.  May need to tune based on number of streams/size of data.
+        final ChannelBuffer channelBuffer = ChannelBuffers.dynamicBuffer(1024);
+
+        try {
+
+            RequestBuilder builder = new RequestBuilder();
+
+            logger.info("user " + credentials.getUsername() + " pass " + descriptor.getTokens().get(0));
+
+            Realm realm = new Realm.RealmBuilder()
+                    .setPrincipal(credentials.getUsername())
+                    .setPassword(descriptor.getTokens().get(0))
+                    .setUsePreemptiveAuth(true)
+                    .setScheme(Realm.AuthScheme.BASIC)
+                    .build();
+
+            asyncClient
+                    .prepareGet(streamingHost + "/stream/" + descriptor.getVehicleId() + "/?values=speed,odometer,soc,elevation,est_heading,est_lat,est_lng,power,shift_state")
+                    .setRealm(realm)
+                    .execute(new AsyncHandler<Object>() {
+                @Override
+                public void onThrowable(Throwable t) {
+                    handler.exceptionOccured(t);
+                    logger.info("Got a throwable " + t);
+                    t.printStackTrace();
+                }
+
+                @Override
+                public STATE onBodyPartReceived(HttpResponseBodyPart bodyPart) throws Exception {
+                    channelBuffer.writeBytes(bodyPart.getBodyPartBytes());
+
+                    int pos = 0;
+                    while ((pos = channelBuffer.bytesBefore(ChannelBufferIndexFinder.LF)) >= 0) {
+                        if (pos == 0) {
+                            // If starting newline, then discard and continue
+                            channelBuffer.readByte();
+                            channelBuffer.discardReadBytes();
+                            continue;
+                        }
+                        String value = channelBuffer.toString(0, pos - 1, Charset.forName("utf-8"));
+
+                        logger.info("Got value '" + value + "'");
+
+                        String[] values = value.split(",", -1);
+
+                        StreamData data = new StreamData(values);
+
+                        boolean stop = handler.handleData(data);
+
+                        if (stop) {
+                            return STATE.ABORT;
+                        }
+                        channelBuffer.readBytes(pos);
+                        channelBuffer.discardReadBytes();
+
+                    }
+
+                    return STATE.CONTINUE;
+                }
+
+                @Override
+                public STATE onStatusReceived(HttpResponseStatus responseStatus) throws Exception {
+                    logger.info("Got status " + responseStatus);
+                    logger.info("status code is " + responseStatus.getStatusCode());
+                    return STATE.CONTINUE;
+                }
+
+                @Override
+                public STATE onHeadersReceived(HttpResponseHeaders headers) throws Exception {
+                    logger.info("got headers " + headers);
+                    logger.info("headers are " + headers.getHeaders());
+                    return STATE.CONTINUE;
+                }
+
+                @Override
+                public Object onCompleted() throws Exception {
+                    logger.info("completed!!!");
+                    handler.streamClosed();
+                    return null;
+                }
+            });
+        }
+        catch (IOException e) {
+            logger.info("caugh exception");
+            throw new IllegalStateException(e);
+        }
+
+        logger.info("stream done");
+
+
+    }
+
+    public void close() {
+        asyncClient.close();
     }
 
     public class VehicleRequest<Response> {
@@ -119,17 +245,15 @@ public class Portal {
         }
 
         protected String getUriTemplate(String ...args) {
-            return protocol + "://" + host + "/vehicles/" + args[0];
+            return portalHost + "/vehicles/" + args[0];
         }
 
-        public Response execute(String id) {
+        public Response execute(PortalCredentials credentials, String id) {
             WebResource.Builder resource = restClient.resource(getUriTemplate(id)).getRequestBuilder();
 
             credentials.sign(resource);
 
             ClientResponse response = resource.accept(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
-
-            System.out.println("response " + response.toString());
 
             return response.getEntity(responseClass);
         }

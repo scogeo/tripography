@@ -19,6 +19,20 @@ public class VehicleDescriptor {
     @JsonProperty("tokens") private List<String> tokens;
     @JsonProperty("state") private String state;
 
+    public VehicleDescriptor() {
+
+    }
+
+    public VehicleDescriptor(String id, String userId, String vehicleId, String optionCodes, String vin, List<String> tokens, String state) {
+        this.id = id;
+        this.userId = userId;
+        this.vehicleId = vehicleId;
+        this.optionCodes = optionCodes;
+        this.vin = vin;
+        this.tokens = tokens;
+        this.state = state;
+    }
+
     public String getId() {
         return id;
     }
