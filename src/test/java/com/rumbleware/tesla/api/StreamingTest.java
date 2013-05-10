@@ -16,6 +16,7 @@ public class StreamingTest {
 
 
     @Test
+    @Ignore
     public void testStream() throws Exception {
 
         UsernamePasswordCredentials credentials = new UsernamePasswordCredentials("george.scott@gmail.com", "kyrdn3yt3sla");
