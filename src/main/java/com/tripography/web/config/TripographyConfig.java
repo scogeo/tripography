@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ComponentScan({"com.tripography.vehicles",
         "com.tripography.providers",
+        "com.rumbleware.invites",
         "com.tripography.accounts",
         "com.tripography.telemetry"})
 public class TripographyConfig extends BaseApplicationConfigurationSupport {

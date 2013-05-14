@@ -18,7 +18,7 @@ import java.util.*;
  * @author gscott
  */
 @Configuration
-@EnableMongoRepositories("com.tripography")
+@EnableMongoRepositories({"com.tripography", "com.rumbleware.invites"})
 public class TripDbConfig extends AbstractMongoConfiguration {
 
     @Override
