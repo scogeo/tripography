@@ -6,6 +6,8 @@ import com.rumbleware.dao.UniqueKeyException;
 import com.rumbleware.web.controller.AppPaths;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotEmpty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -19,10 +21,10 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.ConstraintViolationException;
 import javax.validation.Valid;
 import javax.validation.constraints.Size;
 import java.security.Principal;
-import java.util.logging.Logger;
 
 /**
  * @author gscott
@@ -31,7 +33,7 @@ import java.util.logging.Logger;
 @RequestMapping(AppPaths.SIGNUP)
 public class SignupController {
 
-    private Logger logger = Logger.getLogger(SignupController.class.getName());
+    private Logger logger = LoggerFactory.getLogger(SignupController.class);
 
     @Autowired
     private UserDetailsService userDetailsService;
@@ -86,13 +88,17 @@ public class SignupController {
 
             }
             catch(UniqueKeyException e) {
-                logger.warning("hit a duplicate key " + e.getKey());
+                logger.warn("hit a duplicate key " + e.getKey());
                 bindingResult.addError(new FieldError("account", e.getKey(), "Already used."));
                 return "signup";
             }
+            catch(ConstraintViolationException e) {
+                logger.warn("Constraint violation", e);
+                logger.warn("Violations " + e.getConstraintViolations());
+            }
             catch(DuplicateKeyException e) {
                 // TODO process exceptions
-                logger.severe(e.getMessage());
+                logger.error(e.getMessage());
                 e.printStackTrace();
             }
 
@@ -124,7 +130,7 @@ public class SignupController {
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
         else {
-            logger.severe("Passwords do not match!!!!");
+            logger.error("Passwords do not match!!!!");
         }
     }
 

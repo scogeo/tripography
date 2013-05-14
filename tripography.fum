@@ -6,12 +6,18 @@ settings "aws:autoscaling:asg" => {
         "MaxSize" => 1
     },
     "aws:autoscaling:launchconfiguration" => {
+        "InstanceType" => "m1.small",
         "ImageId" => "ami-fad14e93",
         "EC2KeyName" => "ec2-app",
         "IamInstanceProfile" => "tripography-production"
     },
     "aws:elb:loadbalancer" => {
         "SSLCertificateId" => "arn:aws:iam::298563465266:server-certificate/tripography.com"
+    },
+    "aws:elasticbeanstalk:container:tomcat:jvmoptions" => {
+        "Xms" => "512m",
+        "Xmx" => "512m",
+        "XX:MaxPermSize" => "128m"
     }
 
 stage :production do
