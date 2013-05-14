@@ -67,15 +67,13 @@ public class SignupController {
         if (user != null) {
             return "redirect:/";
         }
-        if (bindingResult.hasErrors() || !"rumblefit".equals(accountForm.getInvite())) {
-
+        if (bindingResult.hasErrors() || !"tripit".equals(accountForm.getInvite())) {
             // Return the form again
             return "signup";
         }
         else {
             // Create an account
             UserAccount account = accountService.newAccount();
-
 
             account.setUsername(accountForm.getUsername());
             account.setFullname(accountForm.getFullname());
