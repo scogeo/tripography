@@ -1,0 +1,8 @@
+<FindBugsFilter>
+    <Match>
+        <Class name="com.fitunity.fitscript.FitScriptLexer"/>
+    </Match>
+    <Match>
+        <Class name="com.fitunity.fitscript.FitScriptParser"/>
+    </Match>
+</FindBugsFilter>
