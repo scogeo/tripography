@@ -1,5 +1,8 @@
 package com.tripography.web.config;
 
+import com.amazonaws.AmazonClientException;
+import com.amazonaws.auth.InstanceProfileCredentialsProvider;
+import com.rumbleware.web.config.Profiles;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -28,8 +31,9 @@ public class ContextInitializer implements ApplicationContextInitializer<Configu
 
         ConfigurableEnvironment environment = configurableWebApplicationContext.getEnvironment();
 
+
         // TODO remove this, after fixing mongo properties.
-        environment.getPropertySources().addFirst(getDevProps());
+        //environment.getPropertySources().addFirst(getDevProps());
 
         String os = System.getProperty("os.name");
 
@@ -43,10 +47,8 @@ public class ContextInitializer implements ApplicationContextInitializer<Configu
             // If we are on Linux, then check to see if on AWS Beanstalk, by looking at environment variables
             Properties props = System.getProperties();
 
-
-            if (props.containsKey("AWS_ACCESS_KEY_ID") &&
-                    props.containsKey("AWS_SECRET_KEY") &&
-                    props.containsKey("PARAM1")) {
+            // We use PARAM1 env var to detect AWS and set the profile.
+            if (props.containsKey("PARAM1")) {
 
                 // Assume we are on AWS
                 environment.addActiveProfile(Profiles.AWS);
@@ -84,8 +86,8 @@ public class ContextInitializer implements ApplicationContextInitializer<Configu
     private MapPropertySource getDevProps() {
         HashMap<String, Object> props = new HashMap<String, Object>();
         // Should we load from a file?
-        props.put("mongodb.host", "127.0.0.1"); // This needs to be 127.0.0.1 and not localhost
-        props.put("mongodb.db", "tripdb");
+        //props.put("mongodb.host", "127.0.0.1"); // This needs to be 127.0.0.1 and not localhost
+        //props.put("mongodb.db", "tripdb");
         return new MapPropertySource("runtimeEnvironemnt", props);
     }
 }

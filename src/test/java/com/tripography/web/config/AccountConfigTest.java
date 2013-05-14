@@ -2,6 +2,7 @@ package com.tripography.web.config;
 
 import com.tripography.accounts.AccountRepository;
 import com.tripography.accounts.AccountRepositoryService;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,10 +17,8 @@ import static org.junit.Assert.assertNotNull;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
+@Ignore
 public class AccountConfigTest {
-
-
-
 
     @Autowired
     AccountRepositoryService accountService;
