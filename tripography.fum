@@ -1,0 +1,69 @@
+
+application_name "tripography-web"
+
+settings "aws:autoscaling:asg" => {
+        "MinSize" => 1,
+        "MaxSize" => 1
+    },
+    "aws:autoscaling:launchconfiguration" => {
+        "ImageId" => "ami-fad14e93",
+        "EC2KeyName" => "ec2-app",
+        "IamInstanceProfile" => "tripography-production"
+    },
+    "aws:elb:loadbalancer" => {
+        "SSLCertificateId" => "arn:aws:iam::298563465266:server-certificate/tripography.com"
+    }
+
+stage :production do
+
+  solution_stack "64bit Amazon Linux running Tomcat 7"
+
+  settings "aws:elasticbeanstalk:sns:topics" => {
+        "Notification Topic ARN" => "arn:aws:sns:us-east-1:298563465266:tripography-production-webapp"
+    },
+    "aws:autoscaling:launchconfiguration" => {
+            "ImageId" => "ami-fad14e93",
+            "SecurityGroups" => "prod-app,prod-ssh"
+    },
+    "aws:elasticbeanstalk:application:environment" => {
+              "PARAM1" => "production"
+    }
+
+  name timestamp_name('trip-prod')
+
+  matcher timestamp_name_matcher('trip-prod')
+
+  description "Production Environment launched #{Time.now}"
+
+  version :from_stage => :build
+
+  # DNS Mappings
+  zone 'tripography.com' do
+    elb_alias :apex
+    elb_alias 'www'
+  end
+
+end
+
+stage :build do
+
+  name "trip-build"
+
+  settings "aws:autoscaling:asg" => {
+          "Availability Zones" => "Any 1",
+      },
+      "aws:autoscaling:launchconfiguration" => {
+              "ImageId" => "ami-a42cb0cd"
+      },
+      "aws:elasticbeanstalk:application:environment" => {
+          "PARAM1" => "test"
+      }
+
+  solution_stack "64bit Amazon Linux running Tomcat 7"
+
+  #version '1.0.0-ec88870cfb'
+  zone 'tripography.com' do
+    elb_alias 'build'
+  end
+
+end
