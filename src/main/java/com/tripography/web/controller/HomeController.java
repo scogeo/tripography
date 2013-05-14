@@ -5,6 +5,8 @@ import com.tripography.accounts.Account;
 import com.tripography.accounts.AccountService;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotEmpty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import javax.annotation.Nullable;
 import javax.validation.constraints.Size;
 import java.security.Principal;
-import java.util.logging.Logger;
 
 /**
  * @author gscott
@@ -22,7 +23,7 @@ import java.util.logging.Logger;
 @Controller
 public class HomeController {
 
-    private static Logger logger =  Logger.getLogger("com.fitunity.web.controller");
+    private static Logger logger =  LoggerFactory.getLogger(HomeController.class);
 
     //@Autowired
     //InviteService _inviteService;

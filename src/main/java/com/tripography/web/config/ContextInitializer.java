@@ -1,7 +1,5 @@
 package com.tripography.web.config;
 
-import com.amazonaws.AmazonClientException;
-import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.rumbleware.web.config.Profiles;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -24,7 +22,7 @@ import java.util.Properties;
  */
 public class ContextInitializer implements ApplicationContextInitializer<ConfigurableWebApplicationContext> {
 
-    private static Logger logger = LoggerFactory.getLogger("com.fitunity.web.config");
+    private static Logger logger = LoggerFactory.getLogger(ContextInitializer.class);
 
     public void initialize(ConfigurableWebApplicationContext configurableWebApplicationContext) {
         logger.info("Initializing application environment.");
