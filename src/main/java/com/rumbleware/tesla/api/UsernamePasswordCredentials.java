@@ -57,14 +57,10 @@ public class UsernamePasswordCredentials implements PortalCredentials {
 
         MultivaluedMap<String, String> headers = response.getHeaders();
 
-        //logger.info("headers are " + headers);
-
         HttpCookie credentials = null;
 
         for (String value : headers.get("Set-Cookie")) {
             List<HttpCookie> cookies = HttpCookie.parse(value);
-
-            logger.info("cookies " + cookies);
 
             for (HttpCookie cookie : cookies) {
                 //logger.info("cookie age " + cookie.getMaxAge());

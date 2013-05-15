@@ -1,8 +1,12 @@
 package com.rumbleware.tesla;
 
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
 import com.rumbleware.tesla.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.Future;
 
 /**
  * @author gscott
@@ -30,19 +34,13 @@ public class TeslaVehicle {
         return portal.driveState(credentials, descriptor.getId());
     }
 
-    public Double getOdometer() {
-        Double value = null;
-
+    public ListenableFuture<Double> getOdometer() {
         OdometerReader reader = new OdometerReader();
         openStream(reader);
-
-        value = reader.getOdometer();
-
-        return value;
+        return reader.getOdometer();
     }
 
     public void openStream(final StreamDataHandler handler) {
-
         portal.wakeUp(credentials, descriptor.getId());
         refreshDescriptor();
         portal.stream(credentials, descriptor, handler);
@@ -61,41 +59,28 @@ public class TeslaVehicle {
 
     public class OdometerReader implements StreamDataHandler {
 
-        private Double odometer = null;
+        private SettableFuture<Double> future = SettableFuture.create();
 
-        public Double getOdometer() {
-            synchronized (this) {
-                while (odometer == null) {
-                    try {
-                        this.wait(5000);
-                    }
-                    catch (InterruptedException e) {
-                        // do nothing
-                    }
-                }
-            }
-            return odometer;
+        public ListenableFuture<Double> getOdometer() {
+            return future;
         }
 
         @Override
         public boolean handleData(StreamData data) {
-            synchronized (this) {
-                odometer = data.getOdometer();
-                this.notifyAll();
-            }
-            logger.info("Yo, got an odometer " + odometer);
+            future.set(data.getOdometer());
             return false;
-
         }
 
         @Override
         public void exceptionOccured(Throwable t) {
-
+            future.setException(t);
         }
 
         @Override
         public void streamClosed() {
-
+            if (!future.isDone()) {
+                future.set(null);
+            }
         }
     }
 }

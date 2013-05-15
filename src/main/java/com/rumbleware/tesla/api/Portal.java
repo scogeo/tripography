@@ -138,17 +138,14 @@ public class Portal {
      */
     public void stream(final PortalCredentials credentials, final VehicleDescriptor descriptor, final StreamDataHandler handler) {
 
-        logger.info("opengin stream!!!");
+        if (logger.isDebugEnabled()) {
+            logger.debug("opening stream for " + credentials.getUsername() + " vehicle " + descriptor.getVehicleId());
+        }
 
         // allocate 1k for now.  May need to tune based on number of streams/size of data.
         final ChannelBuffer channelBuffer = ChannelBuffers.dynamicBuffer(1024);
 
         try {
-
-            RequestBuilder builder = new RequestBuilder();
-
-            logger.info("user " + credentials.getUsername() + " pass " + descriptor.getTokens().get(0));
-
             Realm realm = new Realm.RealmBuilder()
                     .setPrincipal(credentials.getUsername())
                     .setPassword(descriptor.getTokens().get(0))
@@ -156,15 +153,23 @@ public class Portal {
                     .setScheme(Realm.AuthScheme.BASIC)
                     .build();
 
+            RequestBuilder builder = new RequestBuilder();
+
+            builder.setRealm(realm);
+
+
             asyncClient
                     .prepareGet(streamingHost + "/stream/" + descriptor.getVehicleId() + "/?values=speed,odometer,soc,elevation,est_heading,est_lat,est_lng,power,shift_state")
+                    .setHeader("User-Agent", "tripography/1.0")
                     .setRealm(realm)
                     .execute(new AsyncHandler<Object>() {
+
                 @Override
                 public void onThrowable(Throwable t) {
                     handler.exceptionOccured(t);
-                    logger.info("Got a throwable " + t);
-                    t.printStackTrace();
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Caught exception", t);
+                    }
                 }
 
                 @Override
@@ -180,8 +185,8 @@ public class Portal {
                             continue;
                         }
                         String value = channelBuffer.toString(0, pos - 1, Charset.forName("utf-8"));
-
-                        logger.info("Got value '" + value + "'");
+                        channelBuffer.readBytes(pos);
+                        channelBuffer.discardReadBytes();
 
                         String[] values = value.split(",", -1);
 
@@ -192,9 +197,6 @@ public class Portal {
                         if (stop) {
                             return STATE.ABORT;
                         }
-                        channelBuffer.readBytes(pos);
-                        channelBuffer.discardReadBytes();
-
                     }
 
                     return STATE.CONTINUE;
@@ -202,33 +204,33 @@ public class Portal {
 
                 @Override
                 public STATE onStatusReceived(HttpResponseStatus responseStatus) throws Exception {
-                    logger.info("Got status " + responseStatus);
-                    logger.info("status code is " + responseStatus.getStatusCode());
-                    return STATE.CONTINUE;
+                    // TODO handle illegal login exception
+                    int statusCode = responseStatus.getStatusCode();
+
+                    switch (statusCode) {
+                        case 200:
+                            return STATE.CONTINUE;
+                        default:
+                            return STATE.ABORT;
+                    }
                 }
 
                 @Override
                 public STATE onHeadersReceived(HttpResponseHeaders headers) throws Exception {
-                    logger.info("got headers " + headers);
-                    logger.info("headers are " + headers.getHeaders());
+                    //logger.info("headers are " + headers.getHeaders());
                     return STATE.CONTINUE;
                 }
 
                 @Override
                 public Object onCompleted() throws Exception {
-                    logger.info("completed!!!");
                     handler.streamClosed();
                     return null;
                 }
             });
         }
         catch (IOException e) {
-            logger.info("caugh exception");
             throw new IllegalStateException(e);
         }
-
-        logger.info("stream done");
-
 
     }
 

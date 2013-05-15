@@ -1,5 +1,8 @@
 package com.tripography.telemetry;
 
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.rumbleware.tesla.TeslaVehicle;
 import com.rumbleware.tesla.api.Portal;
 import com.rumbleware.tesla.api.VehicleDescriptor;
@@ -8,13 +11,22 @@ import com.tripography.providers.VehicleProviderService;
 import com.tripography.providers.tesla.TeslaVehicleProvider;
 import com.tripography.vehicles.Vehicle;
 import com.tripography.vehicles.VehicleService;
+import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.concurrent.*;
+
+import static org.springframework.data.mongodb.core.query.Criteria.where;
+import static org.springframework.data.mongodb.core.query.Query.query;
+import static org.springframework.data.mongodb.core.query.Update.update;
 
 /**
  * @author gscott
@@ -26,6 +38,7 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
 
     private VehicleService vehicleService;
     private VehicleProviderService vehicleProviderService;
+    private MongoTemplate mongoTemplate;
 
     private Portal portal = new Portal();
 
@@ -50,9 +63,11 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
     private ConcurrentHashMap<String, TeslaVehicleProvider> providersMap = new ConcurrentHashMap<String, TeslaVehicleProvider>();
 
     @Autowired
-    public AsyncVehicleTelemetryService(VehicleService vehicleService, VehicleProviderService vehicleProviderService) {
+    public AsyncVehicleTelemetryService(VehicleService vehicleService, VehicleProviderService vehicleProviderService,
+                                        MongoTemplate mongoTemplate) {
         this.vehicleService = vehicleService;
         this.vehicleProviderService = vehicleProviderService;
+        this.mongoTemplate = mongoTemplate;
         loadProviders();
         loadVehicles();
     }
@@ -143,8 +158,9 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
      *
      * // yearly aggregates
      * {
-     *     year : "2013"
-     *     "aggs" : { sum : 3},
+     *     v : ObjectId(...)
+     *     y : "2013"
+     *     a : { sum : 3},
      *     "01" : {
      *         aggs : { sum : 3},
      *         "01" : 3
@@ -249,29 +265,93 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
     class DailyOdometerJob implements Runnable {
 
         private TrackedVehicle vehicle;
+        private Calendar currentDay;
 
-        public DailyOdometerJob(TrackedVehicle vehicle) {
+        public DailyOdometerJob(Calendar currentDay, TrackedVehicle vehicle) {
+            this.currentDay = currentDay;
             this.vehicle = vehicle;
         }
 
         @Override
         public void run() {
             try {
-                logger.info("Yo stargin the job");
-                logger.info("Cron job reading odometer " +  vehicle.readOdometer());
-                logger.info("Yo ending the job!");
+                ListenableFuture<Double> odometer = vehicle.readOdometer();
+
+                Futures.addCallback(odometer, new FutureCallback<Double>() {
+
+                    @Override
+                    public void onSuccess(Double result) {
+                        if (result != null) {
+                            logger.info("Read an odometer for vehicle " + result);
+                            try {
+                                updateVehicleStatistics(result);
+                            }
+                            catch (Exception e) {
+                                logger.warn("woops", e);
+                            }
+
+                        }
+                        else {
+                            // retry
+                            // TODO implement a retryable job.
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Throwable t) {
+                        logger.warn("Woops got an error while reading odometer " + t);
+                    }
+                });
+
+                vehicle.scheduleDailyOdometer();
+
             }
 
             catch (Exception e) {
                 logger.info("woops caught an exception ", e);
             }
         }
+
+        private void updateVehicleStatistics(Double odometer) {
+            double dailyMileage = odometer - vehicle.getLastOdometer();
+
+            if (dailyMileage < 0.0) {
+                logger.error("woops read negative mileage");
+            }
+
+            logger.info("tracked vehicle " + vehicle.vehicle.getObjectId());
+
+            int month = currentDay.get(Calendar.MONTH) + 1;
+
+            String monthAndDay = month + "." + currentDay.get(Calendar.DAY_OF_MONTH);
+
+            logger.info("month and day " + monthAndDay);
+
+            int year = currentDay.get(Calendar.YEAR);
+
+            String id = year + "/vehicle/" + vehicle.vehicle.getId();
+
+            mongoTemplate.upsert(query(where("_id").is(id)),
+                    new Update()
+                            .set(monthAndDay, dailyMileage)
+                            .inc("a.s", dailyMileage)
+                            .inc(month + ".a.s", dailyMileage),
+                    "yearlyOdometer");
+
+            // Redo query for groups
+
+
+
+        }
+
     }
 
 
     class TrackedVehicle {
 
         private final Vehicle vehicle;
+
+        private Double lastOdometer;
 
         private TeslaVehicleProvider vehicleProvider;
 
@@ -283,8 +363,25 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
         }
 
         public void track() {
+
+            Future<Double> odometer = readOdometer();
+
+            try {
+                lastOdometer = odometer.get();
+                logger.info("Getting latest odometer");
+
+                scheduleDailyOdometer();
+            }
+            catch (Exception e) {
+                throw new IllegalStateException(e);
+            }
+
             // Schedule a job
-            trackDailyOdometer();
+
+        }
+
+        Double getLastOdometer() {
+            return lastOdometer;
         }
 
         public void stopTracking() {
@@ -293,18 +390,17 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
             }
         }
 
-        public double readOdometer() {
+        public ListenableFuture<Double> readOdometer() {
             logger.info("Getting the vehicle's current descriptor ");
             VehicleDescriptor descriptor = portal.vehicle(vehicleProvider.getCredentials(), vehicle.getDetails().getPortalId());
 
             TeslaVehicle tv = new TeslaVehicle(descriptor, vehicleProvider.getCredentials(), portal);
 
-            logger.info("About to read odometer");
             return tv.getOdometer();
 
         }
 
-        private void trackDailyOdometer() {
+        void scheduleDailyOdometer() {
             TimeZone tz = vehicle.getTimeZone();
             if (tz == null) {
                 logger.warn("Vehicle has no timezone " + vehicle);
@@ -312,6 +408,8 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
             }
             Calendar calendar = Calendar.getInstance(tz);
             // Set calendar to midnight of the next day.
+
+            DailyOdometerJob job = new DailyOdometerJob(calendar, this);
 
             calendar.add(Calendar.DAY_OF_MONTH, 1);
             calendar.set(Calendar.HOUR_OF_DAY, 0);
@@ -321,14 +419,14 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
 
             long howMany = calendar.getTimeInMillis() - System.currentTimeMillis();
 
+            //logger.info("Current odometer is " + readOdometer());
 
-            logger.info("Current odometer is " + readOdometer());
+            logger.info("Scheduling a vehicle to check odometer in " + howMany);
 
-            logger.info("Scheduling a vehilce to check odomoter in " + howMany);
-
-            dailyOdometerFuture = scheduledExecutorService.schedule(new DailyOdometerJob(this), howMany, TimeUnit.MILLISECONDS);
-
+            dailyOdometerFuture = scheduledExecutorService.schedule(job, howMany, TimeUnit.MILLISECONDS);
         }
+
+
     }
 
 }
