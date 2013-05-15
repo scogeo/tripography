@@ -134,6 +134,8 @@ public class SettingsController {
         return "redirect:/settings/password";
     }
 
+
+
     @ScriptAssert(lang = "javascript", script = "_this.newPassword.equals(_this.confirmPassword)")
     public static class PasswordSettingsForm {
 

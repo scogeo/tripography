@@ -36,7 +36,6 @@ public class HomeController {
     //@RequestMapping(value = "/")
     public String home(@Nullable Principal principal, Model model) {
 
-        logger.info("Called home controoler");
         model.addAttribute("inviteRequest", new InviteForm());
 
         if (principal == null) {
@@ -53,7 +52,6 @@ public class HomeController {
         Account account = accountService.findById(userId);
 
         model.addAttribute("account", account);
-
 
         return "home";
     }
