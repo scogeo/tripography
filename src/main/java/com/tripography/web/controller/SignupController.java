@@ -3,7 +3,6 @@ package com.tripography.web.controller;
 import com.rumbleware.accounts.UserAccount;
 import com.rumbleware.accounts.UserAccountService;
 import com.rumbleware.dao.UniqueKeyException;
-import com.rumbleware.web.controller.AppPaths;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;

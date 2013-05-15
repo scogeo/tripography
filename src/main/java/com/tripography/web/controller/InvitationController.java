@@ -2,7 +2,6 @@ package com.tripography.web.controller;
 
 import com.rumbleware.invites.InviteRequest;
 import com.rumbleware.invites.InviteService;
-import com.rumbleware.web.controller.AppPaths;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.beans.factory.annotation.Autowired;

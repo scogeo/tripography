@@ -1,0 +1,18 @@
+package com.tripography.web.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+/**
+ * @author gscott
+ */
+@Controller
+@RequestMapping("/olympus")
+public class AdminController {
+
+    @RequestMapping(value = { "", "/" }, method = RequestMethod.GET)
+    public String mainPage() {
+        return "admin/index";
+    }
+}
