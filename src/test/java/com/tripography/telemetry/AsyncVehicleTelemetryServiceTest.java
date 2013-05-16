@@ -8,12 +8,32 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
+import static com.mongodb.util.MyAsserts.assertFalse;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 /**
  * @author gscott
  */
 public class AsyncVehicleTelemetryServiceTest {
 
     private static final Logger logger = LoggerFactory.getLogger(AsyncVehicleTelemetryServiceTest.class);
+
+    @Test
+    public void roundingTest() throws Exception {
+        double x = 3.4;
+        double y = 1.3;
+
+        double expected = 2.1;
+
+        double delta = x - y;
+
+        assertFalse(expected == delta);
+        double fixed = (double)Math.round(delta * 10) / 10;
+
+        assertTrue(expected == fixed);
+        assertEquals(2.1, fixed, 0.0);
+    }
 
     @Test
     public void tzTest() throws Exception {

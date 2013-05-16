@@ -25,7 +25,7 @@ public class VehicleRepositoryService extends BasicRepositoryService<Vehicle, Ve
 
     @Override
     public List<Vehicle> getVehiclesByAccount(String accountId) {
-        return Collections.unmodifiableList((List<? extends Vehicle>)repository.findByAccountId(new ObjectId(accountId)));
+        return Collections.unmodifiableList(repository.findByAccountId(new ObjectId(accountId)));
     }
 
     @Override

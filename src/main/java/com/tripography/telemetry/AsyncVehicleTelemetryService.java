@@ -315,6 +315,9 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
         private void updateVehicleStatistics(Double odometer) {
             double dailyMileage = odometer - vehicle.getLastOdometer();
 
+            // round it
+            dailyMileage = (double)Math.round(dailyMileage * 10) / 10;
+
             if (dailyMileage < 0.0) {
                 logger.error("woops read negative mileage");
             }
