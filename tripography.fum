@@ -7,7 +7,7 @@ settings "aws:autoscaling:asg" => {
     },
     "aws:autoscaling:launchconfiguration" => {
         "InstanceType" => "m1.small",
-        "ImageId" => "ami-fad14e93",
+        "ImageId" => "ami-417b1228",
         "EC2KeyName" => "ec2-app",
         "IamInstanceProfile" => "tripography-production"
     },
@@ -28,7 +28,7 @@ stage :production do
         "Notification Topic ARN" => "arn:aws:sns:us-east-1:298563465266:tripography-production-webapp"
     },
     "aws:autoscaling:launchconfiguration" => {
-            "ImageId" => "ami-fad14e93",
+            "ImageId" => "ami-5d7d1434",
             "SecurityGroups" => "prod-app,prod-ssh"
     },
     "aws:elasticbeanstalk:application:environment" => {
@@ -55,11 +55,12 @@ stage :build do
 
   name "trip-build"
 
+# "Custom Availability Zones" => "us-east-1a"
   settings "aws:autoscaling:asg" => {
-          "Availability Zones" => "Any 1",
+          "Availability Zones" => "Any 1"
       },
       "aws:autoscaling:launchconfiguration" => {
-              "ImageId" => "ami-a42cb0cd"
+              "ImageId" => "ami-417b1228"
       },
       "aws:elasticbeanstalk:application:environment" => {
           "PARAM1" => "test"
@@ -67,7 +68,7 @@ stage :build do
 
   solution_stack "64bit Amazon Linux running Tomcat 7"
 
-  #version '1.0.0-ec88870cfb'
+  #version '1.0.0-04d5c3bbe2'
   zone 'tripography.com' do
     elb_alias 'build'
   end
