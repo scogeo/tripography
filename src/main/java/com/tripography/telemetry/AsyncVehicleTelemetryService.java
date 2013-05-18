@@ -402,7 +402,7 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
         }
 
         private List<String> getGroupIds() {
-            List<String> groupIds = new ArrayList<>();
+            List<String> groupIds = new ArrayList<String>();
             groupIds.add("2013/all");
 
             // Calculate regions"
