@@ -3,6 +3,7 @@ package com.tripography.telemetry;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.mongodb.DBObject;
 import com.rumbleware.tesla.TeslaVehicle;
 import com.rumbleware.tesla.api.Portal;
 import com.rumbleware.tesla.api.VehicleDescriptor;
@@ -160,6 +161,7 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
      * {
      *     v : ObjectId(...)
      *     y : "2013"
+     *     l : { o: 323.4 t: DateTime(...) }
      *     a : { sum : 3},
      *     "01" : {
      *         aggs : { sum : 3},
@@ -264,11 +266,11 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
 
     class DailyOdometerJob implements Runnable {
 
-        private TrackedVehicle vehicle;
-        private Calendar currentDay;
+        private final TrackedVehicle vehicle;
+        private final Calendar currentDay;
 
         public DailyOdometerJob(Calendar currentDay, TrackedVehicle vehicle) {
-            this.currentDay = currentDay;
+            this.currentDay = (Calendar) currentDay.clone();
             this.vehicle = vehicle;
         }
 
@@ -284,6 +286,7 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
                         if (result != null) {
                             logger.info("Read an odometer for vehicle " + result);
                             try {
+                                vehicle.setLastOdometer(result);
                                 updateVehicleStatistics(result);
                             }
                             catch (Exception e) {
@@ -334,16 +337,116 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
 
             String id = year + "/vehicle/" + vehicle.vehicle.getId();
 
+            // This should peform a find and modify to make sure that the odometer value is not updated
+            // by another process.  If so, then other stats should not be run.  Process should then track to see
+            // if other vehicles are tracking it.
+
+            // Increment the vehicle driven count by this amount.  Used to keep track of the number of days
+            // the vehicle was driven.
+            int vehicleDriven = dailyMileage > 0.0 ? 1 : 0;
+
+
             mongoTemplate.upsert(query(where("_id").is(id)),
                     new Update()
-                            .set(monthAndDay, dailyMileage)
+                            .set("o.v", odometer)
+                            .set("o.t", new Date())
+                            .set(monthAndDay, dailyMileage) // Note, setting this will override default of -1, never increment.
                             .inc("a.s", dailyMileage)
-                            .inc(month + ".a.s", dailyMileage),
-                    "yearlyOdometer");
+                            .inc("a.d", vehicleDriven)
+                            .inc(month + ".a.s", dailyMileage)
+                            .inc(month + ".a.d", vehicleDriven)
+                    , "dailyDistance");
+
 
             // Redo query for groups
 
+            List<String> groupIds = getGroupIds();
 
+            // TODO fix this shit.  mongotemplate doesn't support lists in in() for some reason.  For now, submit
+            // multiple updates.  Ok for low # of users.
+
+            for (String groupId : groupIds) {
+                mongoTemplate.upsert(query(where("_id").is(groupId)),
+                        new Update()
+                                .inc(monthAndDay, dailyMileage)
+                                .inc("a.s", dailyMileage)
+                                .inc(month + ".a.s", dailyMileage),
+                        "dailyDistance");
+            }
+
+
+            // If we drove at all, then update the mileage histograms.
+            if (dailyMileage > 0.0) {
+                Integer bucket = (int)Math.floor(dailyMileage);
+
+                // For histograms, intialize with values of 0, when rendering graph, treat zero as null or no data.
+
+                mongoTemplate.upsert(query(where("_id").is(id)),
+                        new Update()
+                                .inc(bucket.toString(), 1)
+                        , "dailyHistogram");
+
+
+                // TODO fix this shit.  mongotemplate doesn't support lists in in() for some reason.  For now, submit
+                // multiple updates.  Ok for low # of users.
+
+                for (String groupId : groupIds) {
+                    mongoTemplate.upsert(query(where("_id").is(groupId)),
+                            new Update()
+                                    .inc(bucket.toString(), 1)
+                            , "dailyHistogram");
+                }
+            }
+
+
+        }
+
+        private List<String> getGroupIds() {
+            List<String> groupIds = new ArrayList<>();
+            groupIds.add("2013/all");
+
+            // Calculate regions"
+
+            groupIds.add("2013/region/us"); // united states
+            groupIds.add("2013/region/us/ca"); // california
+            groupIds.add("2013/region/us/ca/city/sunnyvale"); // city
+            groupIds.add("2013/region/us/ca/county/santa_clara"); // county
+            groupIds.add("2013/region/us/94085"); // postal code
+            groupIds.add("2013/region/us/norcal"); // US "mega-region" based on county
+
+
+            // TODO we need to add the notion of regions tied to either postal code or
+            // county.  In the US, county seems to work well.  Regions may or may not be overlapping.
+            /**
+             * {
+             *    country: "us"  // ISO code
+             *    slug: "norcal",
+             *    name: "Northern California",
+             *    type: "postal" || "county" || "state", etc..
+             *    members: [ "Alameda", "Contra Costa", "Marin", "Napa", ...]
+             *    wikipeida: "http://en.wikipedia.org/..."
+             *
+             * }
+             */
+
+
+
+
+            // These should come from the provider.
+            groupIds.add("2013/make/tesla");
+            groupIds.add("2013/make/tesla/s");
+            groupIds.add("2013/make/tesla/s/battery/85");
+
+            // TODO Now query DB to see what groups we belong to. :)
+            return groupIds;
+
+        }
+
+        /**
+         * Updates the vehicle object's stats.  This includes the vehicle's odometer and refreshes
+         * any other vehicle stats such as firmware version, international settings, etc.
+         */
+        private void updateVehicleInfo() {
 
         }
 
@@ -367,11 +470,30 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
 
         public void track() {
 
-            Future<Double> odometer = readOdometer();
-
             try {
-                lastOdometer = odometer.get();
-                logger.info("Getting latest odometer");
+
+                String id = "2013" + "/vehicle/" + vehicle.getId();
+
+                DBObject result = mongoTemplate.findOne(query(where("_id").is(id)), DBObject.class, "dailyDistance");
+
+                if (result != null) {
+                    logger.info("got a result " + result);
+                    DBObject previousOdometer = (DBObject) result.get("o");
+                    logger.info("got an o " + previousOdometer);
+                    if (previousOdometer != null) {
+                        Double value = (Double)previousOdometer.get("v");
+                        lastOdometer = value;
+                        logger.info("Woo hoo got a last odometer value " + lastOdometer);
+                    }
+                }
+
+                if (lastOdometer == null) {
+                    logger.info("Getting latest odometer");
+
+                    Future<Double> odometer = readOdometer();
+
+                    lastOdometer = odometer.get();
+                }
 
                 scheduleDailyOdometer();
             }
@@ -387,6 +509,10 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
             return lastOdometer;
         }
 
+        void setLastOdometer(Double lastOdometer) {
+            this.lastOdometer = lastOdometer;
+        }
+
         public void stopTracking() {
             if (dailyOdometerFuture != null) {
                 dailyOdometerFuture.cancel(false);
@@ -400,8 +526,9 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
             TeslaVehicle tv = new TeslaVehicle(descriptor, vehicleProvider.getCredentials(), portal);
 
             return tv.getOdometer();
-
         }
+
+
 
         void scheduleDailyOdometer() {
             TimeZone tz = vehicle.getTimeZone();
@@ -413,6 +540,8 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
             // Set calendar to midnight of the next day.
 
             DailyOdometerJob job = new DailyOdometerJob(calendar, this);
+
+            //calendar.add(Calendar.MINUTE, 1);
 
             calendar.add(Calendar.DAY_OF_MONTH, 1);
             calendar.set(Calendar.HOUR_OF_DAY, 0);
