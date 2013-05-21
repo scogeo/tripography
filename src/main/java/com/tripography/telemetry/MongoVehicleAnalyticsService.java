@@ -13,7 +13,7 @@ import static org.springframework.data.mongodb.core.query.Query.query;
  * @author gscott
  */
 @Service("vehicleAnalyticsService")
-public class MongoVehicleAnalyticsService implements VehicleAnalyticsService{
+public class MongoVehicleAnalyticsService implements VehicleAnalyticsService {
 
     private MongoTemplate mongoTemplate;
 
@@ -25,7 +25,12 @@ public class MongoVehicleAnalyticsService implements VehicleAnalyticsService{
     @Override
     public DBObject dailyDistanceForVehicle(String vehicleId, String year) {
         String id = year + "/vehicle/" + vehicleId;
-        return mongoTemplate.findOne(query(where("_id").is(id)), DBObject.class, "yearlyOdometer");
+        return mongoTemplate.findOne(query(where("_id").is(id)), DBObject.class, "dailyDistance");
     }
 
+    @Override
+    public DBObject dailyHistogramForVehicle(String vehicleId, String year) {
+        String id = year + "/vehicle/" + vehicleId;
+        return mongoTemplate.findOne(query(where("_id").is(id)), DBObject.class, "dailyHistogram");
+    }
 }

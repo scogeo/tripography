@@ -15,7 +15,7 @@ doctype 5
 html(lang = "en")
   head
     meta(charset="utf-8")
-
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
     //- Tell IE to render in latest and greatest mode
     meta(http-equiv="X-UA-Compatible", content="IE=edge")
 
@@ -34,8 +34,8 @@ html(lang = "en")
     link(rel="shortcut icon", href="#{assets.imageURL('favicon.ico')}", type="image/x-icon")
 
     block style
-      +css("bootstrap")
-      +css("responsive")
+      +css("bootstrap/bootstrap")
+      +css("bootstrap/responsive")
 
     block scripts
 

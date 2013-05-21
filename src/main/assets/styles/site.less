@@ -2,6 +2,14 @@
 @import "variables.less";
 @import "mixins/css-compat.less";
 
+body {
+  padding-top: 60px;
+}
+
+.navbar .brand {
+  padding: 5px 20px 5px;
+}
+
 .prompting-input {
     position: relative;
     display: inline-block;
@@ -33,14 +41,26 @@
     margin: 30px 0px auto auto;
 }
 
+// Tablets & small desktops only
+@media (min-width: 768px) and (max-width: 979px) {
+  body {
+    padding-top: 0;
+  }
+}
 
-.navbar-logo {
-    background-image: url("../img/logo_grey_89x30.png");
-    width: 89px;
-    height: 30px;
-    background-repeat: no-repeat;
-    padding-top: 5px;
-    display: block;
+/* Tablet
+------------------------- */
+@media (max-width: 767px) {
+  body {
+    padding-top: 0;
+  }
+}
+/* Landscape phones
+------------------------- */
+@media (max-width: 480px) {
+  body {
+    padding-top: 0;
+  }
 }
 
 

@@ -48,10 +48,42 @@ public class ProfileController {
                 model.addAttribute("vehicle", vehicle);
 
             }
-            return "profile";
+
+            return "profile/user";
         }
         else {
             throw new ResourceNotFoundException();
         }
     }
+
+    @RequestMapping(value = AppPaths.PROFILE_VEHICLE_PATTERN, method = RequestMethod.GET)
+    public String getProfileVehicle(@PathVariable("username") String username,
+                                    @PathVariable("vehicle") String vehicleId,
+                                    Model model) {
+
+        if (username == null || vehicleId == null) {
+            throw new ResourceNotFoundException();
+        }
+
+        UserAccount account = accountService.findByUsername(username);
+
+        Vehicle vehicle = null;
+
+        if (vehicleId.length() == 24) {
+            vehicle = vehicleService.findById(vehicleId);
+        }
+        else {
+            // vehicle is a nick name, lookup nickname
+        }
+
+        if (account == null || vehicle == null) {
+            throw new ResourceNotFoundException();
+        }
+
+        model.addAttribute("account", account);
+        model.addAttribute("vehicle", vehicle);
+
+        return "profile/vehicle";
+    }
+
 }

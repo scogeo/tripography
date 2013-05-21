@@ -5,7 +5,8 @@ append style
 
 block body
   body
-    .navbar.navbar-top
+
+    .navbar.navbar-fixed-top.navbar-inverse
       .navbar-inner
         .container
           a.brand(href="/"): +img("logo_grey_136x30.png", 136, 30)
@@ -21,7 +22,6 @@ block body
                   li.divider
                   li
                     a(href="/auth/logout") Sign out
-
 
     .container
       block content

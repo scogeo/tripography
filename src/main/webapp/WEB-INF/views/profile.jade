@@ -2,11 +2,21 @@ extends site
 
 block content
   .row
-    .span4
+    .span12
       .well
         .profile-sidebar
           h4.username= account.username
 
-    .span8
+  .row
+    .span12
       .well
-        div(style="min-width: 400px; height: 400px; margin: 0 auto", data-vehicle-id="#{vehicle.id}",r data-require-elem="charts/daily-odometer")
+        ul.nav.nav-tabs
+          li
+            a(href="#", data-toggle="tab") Daily Driving
+          li
+            a(href="#", data-toggle="tab") Daily Driving (Histogram)
+
+        div
+          div(style="min-width: 400px; height: 400px; margin: 0 auto", data-vehicle-id="#{vehicle.id}",r data-require-elem="charts/daily-odometer")
+          p hello
+          div(style="min-width: 400px; height: 400px; margin: 0 auto", data-vehicle-id="#{vehicle.id}",r data-require-elem="charts/daily-histogram")

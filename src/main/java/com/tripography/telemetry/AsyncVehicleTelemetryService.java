@@ -286,8 +286,8 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
                         if (result != null) {
                             logger.info("Read an odometer for vehicle " + result);
                             try {
-                                vehicle.setLastOdometer(result);
                                 updateVehicleStatistics(result);
+                                vehicle.setLastOdometer(result);
                             }
                             catch (Exception e) {
                                 logger.warn("woops", e);
@@ -321,6 +321,9 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
             // round it
             dailyMileage = (double)Math.round(dailyMileage * 10) / 10;
 
+            logger.info("The current odomter is " + odometer + " and the previous odometer was " + vehicle.getLastOdometer());
+            logger.info("Daily mileage is " + dailyMileage);
+
             if (dailyMileage < 0.0) {
                 logger.error("woops read negative mileage");
             }
@@ -344,7 +347,6 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
             // Increment the vehicle driven count by this amount.  Used to keep track of the number of days
             // the vehicle was driven.
             int vehicleDriven = dailyMileage > 0.0 ? 1 : 0;
-
 
             mongoTemplate.upsert(query(where("_id").is(id)),
                     new Update()
@@ -403,6 +405,10 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
 
         private List<String> getGroupIds() {
             List<String> groupIds = new ArrayList<String>();
+
+            if (true) {
+                return groupIds;
+            }
             groupIds.add("2013/all");
 
             // Calculate regions"
@@ -542,6 +548,7 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
             DailyOdometerJob job = new DailyOdometerJob(calendar, this);
 
             //calendar.add(Calendar.MINUTE, 1);
+
 
             calendar.add(Calendar.DAY_OF_MONTH, 1);
             calendar.set(Calendar.HOUR_OF_DAY, 0);

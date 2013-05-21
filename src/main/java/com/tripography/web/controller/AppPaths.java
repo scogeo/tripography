@@ -17,6 +17,7 @@ public interface AppPaths {
 
     public static final String PROFILE = "/profile";
     public static final String PROFILE_PATTERN = "/profile/{username}";
+    public static final String PROFILE_VEHICLE_PATTERN = "/profile/{username}/vehicle/{vehicle}";
 
     public static final String CHARTS = "/data/charts";
 

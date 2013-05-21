@@ -1,0 +1,22 @@
+extends ../site
+
+block content
+  .row
+    .span12
+      .well
+        .profile-sidebar
+          h4.username= account.username
+
+  .row
+    .span12
+      .well
+        .tabbable
+          ul.nav.nav-tabs(data-tabs="tabs", data-require-elem="bootstrap/navtabs")
+            li.active
+              a(href="#dailyChart", data-toggle="tab") Daily Driving
+            li
+              a(href="#dailyHistogramChart", data-toggle="tab") Daily Drive Distribution
+
+          div.tab-content
+            div.tab-pane.active#dailyChart(style="height: 400px; margin: 0 auto", data-vehicle-id="#{vehicle.id}", data-require-elem="charts/daily-odometer")
+            div.tab-pane#dailyHistogramChart(style="height: 400px; margin: 0 auto", data-vehicle-id="#{vehicle.id}", data-require-elem="charts/daily-histogram")

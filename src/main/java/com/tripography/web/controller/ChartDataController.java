@@ -37,4 +37,15 @@ public class ChartDataController {
             return "{}";
         }
     }
+
+    @RequestMapping(value = "/{vehicleId}/daily-histogram.json", method = {RequestMethod.GET}, produces = "application/json")
+    public @ResponseBody String vehicleDailyHistogramData(@PathVariable("vehicleId") String vehicleId) {
+        DBObject result = analyticsService.dailyHistogramForVehicle(vehicleId, "2013");
+        if (result != null) {
+            return result.toString();
+        }
+        else {
+            return "{}";
+        }
+    }
 }

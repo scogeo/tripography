@@ -11,4 +11,6 @@ public interface VehicleAnalyticsService {
 
     DBObject dailyDistanceForVehicle(String vehicleId, String year);
 
+    DBObject dailyHistogramForVehicle(String vehicleId, String year);
+
 }

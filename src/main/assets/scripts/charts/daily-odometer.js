@@ -2,31 +2,39 @@ define("charts/daily-odometer", ['jquery', 'highcharts'], function($, Highcharts
 
     return function (chartElem) {
 
-        vehicleId = $(chartElem).attr('data-vehicle-id');
+        var vehicleId = $(chartElem).attr('data-vehicle-id');
 
         if (vehicleId == null) {
             alert("oop no vehicle id");
             return null;
         }
 
-        chart = new Highcharts.Chart({
+        var chart = new Highcharts.Chart({
             chart: {
                 renderTo: chartElem,
                 type: 'area',
-                marginRight: 130,
-                marginBottom: 25
+                marginRight: 20,
+                marginBottom: 25,
+                borderRadius: 0,
+                reflow: true
+            },
+            credits: {
+                enabled: false
             },
             title: {
                 text: 'Distance Traveled'
                 //x: -20 //center
             },
             xAxis: {
-                type: 'datetime'
+                type: 'datetime',
+                minTickInterval: 24 * 3600 * 1000,
+                offset: 0
             },
             yAxis: {
                 title: {
                     text: 'Distance (miles)'
                 },
+                min: 0,
                 plotLines: [{
                     value: 0,
                     width: 1,
@@ -35,26 +43,24 @@ define("charts/daily-odometer", ['jquery', 'highcharts'], function($, Highcharts
             },
             tooltip: {
                 valueSuffix: 'miles'
+
             },
             legend: {
-                layout: 'vertical',
-                align: 'right',
-                verticalAlign: 'top',
-                x: -10,
-                y: 100,
-                borderWidth: 0
+                enabled: false
             },
             series: [
                 {
-                    name: "Daily Mileage",
+                    //name: "Daily Mileage",
                     data: []
                 }]
         });
 
+        $(chartElem).data("chart", chart);
+
         chart.showLoading();
 
         $.getJSON("/data/charts/" + vehicleId + "/daily.json", function(data) {
-            year = "2013";
+            var year = "2013";
             const months = [ "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12" ];
             const days = [
                 "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
@@ -95,6 +101,8 @@ define("charts/daily-odometer", ['jquery', 'highcharts'], function($, Highcharts
                     }
                 }
             }
+
+
 
             chart.series[0].update({
                 pointStart: Date.UTC(year, firstMonth - 1, firstDay),
