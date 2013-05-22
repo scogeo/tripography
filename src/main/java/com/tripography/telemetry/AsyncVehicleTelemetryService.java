@@ -206,13 +206,10 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
      * // Histogram
      * {
      *      v : "1" // vehicleId
-     *      total : 3
-     *      [
-     *         {
-     *             daily : 1,
-     *             count : x
-     *         }
-     *      ]
+     *      s : 3 // # of days
+     *      b : { // bins
+     *          "0" : 3 // 0 < x < 1
+     *      }
      *
      * }
      *
@@ -385,7 +382,8 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
 
                 mongoTemplate.upsert(query(where("_id").is(id)),
                         new Update()
-                                .inc(bucket.toString(), 1)
+                                .inc("s", 1)
+                                .inc("b." + bucket.toString(), 1)
                         , "dailyHistogram");
 
 
@@ -395,7 +393,8 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
                 for (String groupId : groupIds) {
                     mongoTemplate.upsert(query(where("_id").is(groupId)),
                             new Update()
-                                    .inc(bucket.toString(), 1)
+                                    .inc("s", 1)
+                                    .inc("b." + bucket.toString(), 1)
                             , "dailyHistogram");
                 }
             }

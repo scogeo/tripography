@@ -13,10 +13,9 @@ define("charts/daily-odometer", ['jquery', 'highcharts'], function($, Highcharts
             chart: {
                 renderTo: chartElem,
                 type: 'area',
-                marginRight: 20,
-                marginBottom: 25,
-                borderRadius: 0,
-                reflow: true
+                marginRight: 30,
+                marginBottom: 50,
+                borderRadius: 0
             },
             credits: {
                 enabled: false
@@ -28,13 +27,17 @@ define("charts/daily-odometer", ['jquery', 'highcharts'], function($, Highcharts
             xAxis: {
                 type: 'datetime',
                 minTickInterval: 24 * 3600 * 1000,
-                offset: 0
+                offset: 0,
+                title: {
+                    text: 'Date driven'
+                }
             },
             yAxis: {
                 title: {
                     text: 'Distance (miles)'
                 },
                 min: 0,
+
                 plotLines: [{
                     value: 0,
                     width: 1,
@@ -42,7 +45,7 @@ define("charts/daily-odometer", ['jquery', 'highcharts'], function($, Highcharts
                 }]
             },
             tooltip: {
-                valueSuffix: 'miles'
+                valueSuffix: ' miles'
 
             },
             legend: {
@@ -50,12 +53,17 @@ define("charts/daily-odometer", ['jquery', 'highcharts'], function($, Highcharts
             },
             series: [
                 {
-                    //name: "Daily Mileage",
+                    name: "Daily Mileage",
                     data: []
                 }]
         });
 
         $(chartElem).data("chart", chart);
+
+        $(chartElem).resize(function() {
+            var chart = $(chartElem).data("chart");
+            chart.setSize($(chartElem).width(), $(chartElem).height(), false);
+        });
 
         chart.showLoading();
 
