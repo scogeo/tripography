@@ -29,8 +29,20 @@ public class MongoVehicleAnalyticsService implements VehicleAnalyticsService {
     }
 
     @Override
-    public DBObject dailyHistogramForVehicle(String vehicleId, String year) {
-        String id = year + "/vehicle/" + vehicleId;
+    public DBObject dailyDistanceForAccount(String accountId, String year) {
+        String id = year + "/account/" + accountId;
+        return mongoTemplate.findOne(query(where("_id").is(id)), DBObject.class, "dailyDistance");
+    }
+
+    @Override
+    public DBObject dailyHistogramForVehicle(String vehicleId) {
+        String id = "vehicle/" + vehicleId;
+        return mongoTemplate.findOne(query(where("_id").is(id)), DBObject.class, "dailyHistogram");
+    }
+
+    @Override
+    public DBObject dailyHistogramForAccount(String accountId) {
+        String id = "account/" + accountId;
         return mongoTemplate.findOne(query(where("_id").is(id)), DBObject.class, "dailyHistogram");
     }
 }

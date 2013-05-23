@@ -1,0 +1,12 @@
+
+mixin tabbed_charts(analytics_id)
+  .tabbable
+    ul.nav.nav-tabs(data-tabs="tabs", data-require-elem="bootstrap/navtabs")
+      li.active
+        a(href="#dailyChart", data-toggle="tab") Daily Driving
+      li
+        a(href="#dailyHistogramChart", data-toggle="tab") Daily Drive Distribution
+
+    div.tab-content
+      div.tab-pane.active#dailyChart(style="height: 400px; margin: 0 auto", data-vehicle-id="#{analytics_id}", data-require-elem="charts/daily-odometer")
+      div.tab-pane#dailyHistogramChart(style="height: 400px; margin: 0 auto", data-vehicle-id="#{analytics_id}", data-require-elem="charts/daily-histogram")

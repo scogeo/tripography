@@ -42,12 +42,7 @@ public class ProfileController {
 
             List<Vehicle> vehicles = vehicleService.getVehiclesByAccount(account.getId());
 
-            if (vehicles.size() > 0) {
-                Vehicle vehicle = vehicles.get(0);
-                logger.info("Got vehicle " + vehicle.getId());
-                model.addAttribute("vehicle", vehicle);
-
-            }
+            model.addAttribute("vehicles", vehicles);
 
             return "profile/user";
         }

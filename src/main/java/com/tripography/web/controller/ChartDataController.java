@@ -27,7 +27,7 @@ public class ChartDataController {
     private VehicleAnalyticsService analyticsService;
 
 
-    @RequestMapping(value = "/{vehicleId}/daily.json", method = {RequestMethod.GET}, produces = "application/json")
+    @RequestMapping(value = "/vehicle/{vehicleId}/daily.json", method = {RequestMethod.GET}, produces = "application/json")
     public @ResponseBody String vehicleDailyOdometerData(@PathVariable("vehicleId") String vehicleId) {
         DBObject result = analyticsService.dailyDistanceForVehicle(vehicleId, "2013");
         if (result != null) {
@@ -38,9 +38,31 @@ public class ChartDataController {
         }
     }
 
-    @RequestMapping(value = "/{vehicleId}/daily-histogram.json", method = {RequestMethod.GET}, produces = "application/json")
+    @RequestMapping(value = "/account/{accountId}/daily.json", method = {RequestMethod.GET}, produces = "application/json")
+    public @ResponseBody String accountDailyOdometerData(@PathVariable("accountId") String accountId) {
+        DBObject result = analyticsService.dailyDistanceForAccount(accountId, "2013");
+        if (result != null) {
+            return result.toString();
+        }
+        else {
+            return "{}";
+        }
+    }
+
+    @RequestMapping(value = "/vehicle/{vehicleId}/daily-histogram.json", method = {RequestMethod.GET}, produces = "application/json")
     public @ResponseBody String vehicleDailyHistogramData(@PathVariable("vehicleId") String vehicleId) {
-        DBObject result = analyticsService.dailyHistogramForVehicle(vehicleId, "2013");
+        DBObject result = analyticsService.dailyHistogramForVehicle(vehicleId);
+        if (result != null) {
+            return result.toString();
+        }
+        else {
+            return "{}";
+        }
+    }
+
+    @RequestMapping(value = "/account/{accountId}/daily-histogram.json", method = {RequestMethod.GET}, produces = "application/json")
+    public @ResponseBody String accountDailyHistogramData(@PathVariable("accountId") String accountId) {
+        DBObject result = analyticsService.dailyHistogramForAccount(accountId);
         if (result != null) {
             return result.toString();
         }

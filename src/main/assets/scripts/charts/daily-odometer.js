@@ -21,15 +21,14 @@ define("charts/daily-odometer", ['jquery', 'highcharts'], function($, Highcharts
                 enabled: false
             },
             title: {
-                text: 'Distance Traveled'
-                //x: -20 //center
+                text: 'Distance Driven (per day)'
             },
             xAxis: {
                 type: 'datetime',
                 minTickInterval: 24 * 3600 * 1000,
                 offset: 0,
                 title: {
-                    text: 'Date driven'
+                    text: 'Date'
                 }
             },
             yAxis: {
@@ -53,7 +52,7 @@ define("charts/daily-odometer", ['jquery', 'highcharts'], function($, Highcharts
             },
             series: [
                 {
-                    name: "Daily Mileage",
+                    name: "Distance",
                     data: []
                 }]
         });
@@ -81,6 +80,12 @@ define("charts/daily-odometer", ['jquery', 'highcharts'], function($, Highcharts
 
             var firstMonth = null;
             var firstDay = null;
+
+            // Quick hack, doesn't work on all browsers.
+            if (Object.keys(data).length == 0) {
+                chart.showLoading("No Data Available");
+                return;
+            }
 
             for (var month in months) {
                 var monthlyValues = data[month];

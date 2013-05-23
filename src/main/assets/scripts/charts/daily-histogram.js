@@ -18,7 +18,7 @@ define("charts/daily-histogram", ['jquery', 'highcharts'], function($, Highchart
                 borderRadius: 0
             },
             title: {
-                text: 'Distance (Distribution)'
+                text: 'Daily Driving Distance (Distribution)'
             },
             credits: {
                 enabled: false
@@ -35,7 +35,7 @@ define("charts/daily-histogram", ['jquery', 'highcharts'], function($, Highchart
             yAxis: {
                 allowDecimals: false,
                 title: {
-                    text: 'Days'
+                    text: '# of Days'
                 },
                 min: 0,
                 minRange: 1,
@@ -99,6 +99,12 @@ define("charts/daily-histogram", ['jquery', 'highcharts'], function($, Highchart
         chart.showLoading();
 
         $.getJSON("/data/charts/" + vehicleId + "/daily-histogram.json", function(data) {
+
+            // Quick hack, doesn't work on all browsers.
+            if (Object.keys(data).length == 0) {
+                chart.showLoading("No Data Available");
+                return;
+            }
 
             var bins = data["b"];
 

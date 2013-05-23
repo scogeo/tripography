@@ -174,6 +174,29 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
      *
      * }
      *
+     * {
+     *     v : ObjectId(...)
+     *     t : "
+     *     type : {
+     *         type : "vehicle",
+     *         id : ObjectId(...)
+     *         year : 2013
+     *     }
+     *     y : "2013"
+     *     l : { o: 323.4 t: DateTime(...) }
+     *     a : { s : 3, v: 1 }, // s: sum
+     *     "01" : {
+     *         aggs : { s : 3.2, v: 2 } // sum for month, v vehicle driven days for month
+     *         "01" : { d: 3.4, v: 2 } // d is distance, v is vehicle count (# of vehicles in distance)
+     *         "02" : 4,
+     *         ...
+     *     },
+     *     "02" :
+     *
+     *
+     * }
+     *
+     *
      * // So for each vehicle odometer update
      * // 1. Update vehicle's stats and aggregates
      *    2. Update global aggregates
@@ -312,6 +335,24 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
             }
         }
 
+        /**
+         * Vehicle stats for daily distance ids are as follows:
+         *
+         * /{year}/vehicle/{vehicleId} - daily distance for this vehicle
+         * /{year}/account/{accountId} - daily distance for all vehicles in this account
+         * /{year}/region/{country_code}/...
+         *
+         * // For us country_code, then the following are used:
+         * /{year}/region/us/postal/{zipcode}
+         * /{year}/region/us/{statecode_or_megaregion}
+         * /{year}/region/us/{statecode}/city/{city_name}
+         *
+         * // For the make model
+         * /{year}/make/tesla/s/
+         * /{year}/make/tesla/s/battery/{battery_size}
+         *
+         * @param odometer
+         */
         private void updateVehicleStatistics(Double odometer) {
             double dailyMileage = odometer - vehicle.getLastOdometer();
 
@@ -356,8 +397,22 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
                             .inc(month + ".a.d", vehicleDriven)
                     , "dailyDistance");
 
+            String accountId = year + "/account/" + vehicle.vehicle.getAccountId();
+
+
+            mongoTemplate.upsert(query(where("_id").is(accountId)),
+                    new Update()
+                            .inc(monthAndDay, dailyMileage) // Note, setting this will override default of -1, never increment.
+                            .inc("a.s", dailyMileage)
+                            .inc("a.d", vehicleDriven)
+                            .inc(month + ".a.s", dailyMileage)
+                            .inc(month + ".a.d", vehicleDriven)
+                    , "dailyDistance");
+
 
             // Redo query for groups
+
+
 
             List<String> groupIds = getGroupIds();
 
@@ -376,11 +431,21 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
 
             // If we drove at all, then update the mileage histograms.
             if (dailyMileage > 0.0) {
+
+                String vehicleId = "vehicle/" + vehicle.vehicle.getId();
                 Integer bucket = (int)Math.floor(dailyMileage);
 
                 // For histograms, intialize with values of 0, when rendering graph, treat zero as null or no data.
 
-                mongoTemplate.upsert(query(where("_id").is(id)),
+                mongoTemplate.upsert(query(where("_id").is(vehicleId)),
+                        new Update()
+                                .inc("s", 1)
+                                .inc("b." + bucket.toString(), 1)
+                        , "dailyHistogram");
+
+                String histAccountId = "account/" + vehicle.vehicle.getAccountId();
+
+                mongoTemplate.upsert(query(where("_id").is(histAccountId)),
                         new Update()
                                 .inc("s", 1)
                                 .inc("b." + bucket.toString(), 1)
