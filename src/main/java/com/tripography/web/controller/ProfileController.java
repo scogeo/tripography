@@ -31,6 +31,11 @@ public class ProfileController {
     @Autowired
     private VehicleService vehicleService;
 
+    @RequestMapping(value = "/{username}", method = RequestMethod.GET)
+    public String getSimpleProfile(@PathVariable("username") String username, Model model) {
+        return getProfile(username, model);
+    }
+
     @RequestMapping(value = AppPaths.PROFILE_PATTERN, method = RequestMethod.GET)
     public String getProfile(@PathVariable("username") String username, Model model) {
 
