@@ -3,13 +3,22 @@ extends ../site
 
 block content
   .row
-    .span12
-      .hero-unit.hero-invite
-        h1 Driving Evolved.
-        p Track your trips. Drive smarter.
-        .invite-request
-          p Request an invitation to join tripography.
-          +form("/invite/request").form-inline
-            input(type="text", name="email").input-xlarge
-            | &nbsp;
+    .span6.offset3
+      .well
+        h4.text-center Tesla Model S Owner?
+        p.text-center Request an invitation to join tripography.
+        +form("/invite/request").form-horizontal.form6
+          +grouped_input(id="email", label="Email", type="email").input-large
+          +grouped_input(id="tmcUsername", label="TMC Username (optional)", type="text", help="Tesla Motors Club member? Enter your username for priority access.").input-large
+          +grouped_select(id="vehicle", label="Vehicle").input-large
+            option(value="none") I don't own a Model S
+            option(value="sp85") Model S Signature Performance
+            option(value="s85") Model S Signature
+            option(value="p85") Model S Performance
+            option(value="85") Model S (85 kWh)
+            option(value="60") Model S (60 kWh)
+          +grouped_checkbox(id="teslive", description="I am attending TESLIVE 2013.")
+
+          .form-actions
             button(type="submit").btn.btn-primary Request Invitation
+

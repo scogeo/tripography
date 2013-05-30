@@ -1,13 +1,17 @@
-
 extends site
 
+block title
+  title Tripography
+
 block content
+  include vehicles/charts
   .row
-    .span4
+    .span12
       .well
         .profile-sidebar
-          h3.fullname= account.fullname
           h4.username= account.username
-    .span8
+
+  .row
+    .span12
       .well
-        p feed goes here
+        +tabbed_charts("account/" + account.id)

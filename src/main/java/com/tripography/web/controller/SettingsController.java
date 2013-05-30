@@ -47,7 +47,7 @@ public class SettingsController {
         UserAccount account = lookupAccount(principal);
 
         logger.info("found account " + account );
-        model.addAttribute("settings", account);
+        model.addAttribute("account", account);
 
         return "settings/account";
     }
@@ -99,7 +99,9 @@ public class SettingsController {
     }
 
     @RequestMapping(value = "/password", method = RequestMethod.GET)
-    public String displayPasswordSettings(Model model) {
+    public String displayPasswordSettings(Principal principal, Model model) {
+        UserAccount account = lookupAccount(principal);
+        model.addAttribute("account", account);
         model.addAttribute("settings", new PasswordSettingsForm());
         return "settings/password";
     }
