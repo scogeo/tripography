@@ -2,13 +2,6 @@ define("charts/daily-odometer", ['jquery', 'highcharts'], function($, Highcharts
 
     return function (chartElem) {
 
-        var vehicleId = $(chartElem).attr('data-vehicle-id');
-
-        if (vehicleId == null) {
-            alert("oop no vehicle id");
-            return null;
-        }
-
         var chart = new Highcharts.Chart({
             chart: {
                 renderTo: chartElem,
@@ -18,10 +11,13 @@ define("charts/daily-odometer", ['jquery', 'highcharts'], function($, Highcharts
                 borderRadius: 0
             },
             credits: {
-                enabled: false
+                text: "tripography.com"
             },
             title: {
-                text: 'Distance Driven (per day)'
+                text: 'Distance Driven'
+            },
+            subtitle: {
+                text: 'Per Day'
             },
             xAxis: {
                 type: 'datetime',
@@ -59,17 +55,23 @@ define("charts/daily-odometer", ['jquery', 'highcharts'], function($, Highcharts
 
         $(chartElem).data("chart", chart);
 
-        $(chartElem).resize(function() {
-            var chart = $(chartElem).data("chart");
-            chart.setSize($(chartElem).width(), $(chartElem).height(), false);
+        $(window).resize(function() {
+            $(chartElem).data("chart").setSize($(chartElem).width(), $(chartElem).height(), false);
         });
 
         chart.showLoading();
 
+        var vehicleId = $(chartElem).attr('data-vehicle-id');
+
+        if (vehicleId == null) {
+            chart.showLoading("No Data Available");
+            return;
+        }
+
         $.getJSON("/data/charts/" + vehicleId + "/daily.json", function(data) {
             var year = "2013";
-            const months = [ "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12" ];
-            const days = [
+            var months = [ "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12" ];
+            var days = [
                 "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
                 "11", "22", "13", "14", "15", "16", "17", "18", "19", "10",
                 "21", "22", "23", "24", "25", "26", "27", "28", "29", "20",
@@ -81,8 +83,7 @@ define("charts/daily-odometer", ['jquery', 'highcharts'], function($, Highcharts
             var firstMonth = null;
             var firstDay = null;
 
-            // Quick hack, doesn't work on all browsers.
-            if (Object.keys(data).length == 0) {
+            if (data["_id"] == null) {
                 chart.showLoading("No Data Available");
                 return;
             }
@@ -114,8 +115,6 @@ define("charts/daily-odometer", ['jquery', 'highcharts'], function($, Highcharts
                     }
                 }
             }
-
-
 
             chart.series[0].update({
                 pointStart: Date.UTC(year, firstMonth - 1, firstDay),

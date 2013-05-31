@@ -2,13 +2,6 @@ define("charts/daily-histogram", ['jquery', 'highcharts'], function($, Highchart
 
     return function (chartElem) {
 
-        var vehicleId = $(chartElem).attr('data-vehicle-id');
-
-        if (vehicleId == null) {
-            alert("oop no vehicle id");
-            return null;
-        }
-
         var chart = new Highcharts.Chart({
             chart: {
                 renderTo: chartElem,
@@ -18,10 +11,13 @@ define("charts/daily-histogram", ['jquery', 'highcharts'], function($, Highchart
                 borderRadius: 0
             },
             title: {
-                text: 'Daily Driving Distance (Distribution)'
+                text: 'Daily Driving Distance'
+            },
+            subtitle: {
+                text: 'Distribution'
             },
             credits: {
-                enabled: false
+                text: "tripography.com"
             },
             xAxis: {
                 allowDecimals: false,
@@ -79,45 +75,44 @@ define("charts/daily-histogram", ['jquery', 'highcharts'], function($, Highchart
                 {
                     showInLegend: false,
                     name: "Count",
-                    //name: "Daily Mileage",
                     data: []
-                },
-                {
-                    name:'Curve',
-                    type:'spline',
-                    visible:true,
-                    data: []
-                    //color: 'rgba(204,204,255,.85)'
                 }]
         });
 
         $(chartElem).data("chart", chart);
-        $(chartElem).resize(function() {
-            var chart = $(chartElem).data("chart");
-            chart.setSize($(chartElem).width(), $(chartElem).height(), false);
+        $(window).resize(function() {
+            $(chartElem).data("chart").setSize($(chartElem).width(), $(chartElem).height(), false);
         });
         chart.showLoading();
 
+        var vehicleId = $(chartElem).attr('data-vehicle-id');
+
+        if (vehicleId == null) {
+            chart.showLoading("No Data Available");
+            return;
+        }
+
         $.getJSON("/data/charts/" + vehicleId + "/daily-histogram.json", function(data) {
 
-            // Quick hack, doesn't work on all browsers.
-            if (Object.keys(data).length == 0) {
+            if (data["_id"] == null) {
                 chart.showLoading("No Data Available");
                 return;
             }
 
             var bins = data["b"];
-
             var series = [];
+            var maxBins = 200;
 
             if (bins) {
-                for (var distance in bins) {
-                    series.push([parseInt(distance), parseInt(bins[distance])]);
+                for (var i = 0; i <= maxBins; i++) {
+                    var value = parseInt(bins[i]);
+                    if (value) {
+                        series.push(i, value);
+                    }
                 }
             }
 
             chart.series[0].setData(series);
-            //chart.series[1].setData(series);
             chart.hideLoading();
         });
 

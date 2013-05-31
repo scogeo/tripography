@@ -226,6 +226,10 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
      *
      * }
      *
+     * // For daily driving histogram there are two separate items kept.  One for miles and one for km.
+     * // For miles the bin sizes are in 1 mile increments, with distances of > 200 miles lumped together
+     * // For km the bins size are in 1 km increments with distances of > 320km they are lumped together.
+     *
      * // Histogram
      * {
      *      v : "1" // vehicleId

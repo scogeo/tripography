@@ -59,7 +59,7 @@ define("forms/autoprompt", ['jquery'], function($) {
         }
 
         $(formElem).each(function() {
-            $(formElem).find('div.prompting-input input[type=text][data-prompt],input[type=password][data-prompt]').each(function() {
+            $(formElem).find('div.prompting-input input[type=text][data-prompt],input[type=password][data-prompt],input[type=email][data-prompt]').each(function() {
                 createPrompt($(this));
             });
         });

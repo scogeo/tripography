@@ -11,7 +11,7 @@ block content
           p Tesla Model S Owner?
           p Request an invitation to join tripography.
           +form("/invite/request").form-inline(id="inviteform", prompt)
-            +prompting_input(type="text", name="email", data-prompt="Email").input-xlarge
+            +prompting_input(type="email", name="email", data-prompt="Email").input-xlarge
             | &nbsp;
             button(type="submit").btn.btn-primary Request Invitation
     .span4

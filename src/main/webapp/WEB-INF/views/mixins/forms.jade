@@ -4,13 +4,21 @@ mixin form(action)
     block
     input(name="requestToken", type="hidden", value="#{httpRequest.getSession().getAttribute("requestToken")}")
 
-mixin grouped_input
-  .control-group
+mixin grouped_input(form, formErrors)
+  inputValue = attributes.value
+  if form && form[attributes.name]
+    inputValue = form[attributes.name]
+
+  controlGroupClass = "control-group"
+  if formErrors && formErrors.hasFieldErrors(attributes.name)
+    controlGroupClass = controlGroupClass + " error"
+  div(class=controlGroupClass)
     if attributes.id && attributes.label
       label.control-label(for=attributes.id)= attributes.label
     .controls
-      input(id=attributes.id, type=attributes.type, class=attributes.class, name=attributes.name, value=attributes.value)
-      span.help-inline Woops
+      input(id=attributes.id, type=attributes.type, class=attributes.class, name=attributes.name, value=inputValue)
+      if formErrors && formErrors.hasFieldErrors(attributes.name)
+        span.help-inline= formErrors.getFieldErrors(attributes.name).get(0)
       if attributes.help
         p.help-block= attributes.help
 
@@ -44,4 +52,3 @@ mixin grouped_checkbox
 mixin prompting_input
   .prompting-input
     input(attributes)
-
