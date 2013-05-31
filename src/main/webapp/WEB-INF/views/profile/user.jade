@@ -6,14 +6,12 @@ block title
 block content
   include ../vehicles/charts
   .row
-    .span12
-
-      .well
-        .profile-sidebar
-          h4.username= account.username
+    .span12.well
+      .profile-sidebar
+        h4.username= account.username
+        p 2012 Tesla Model S Performance (85 kWh)
 
   .row
-    .span12
-      .well
-        h4.text-center Vehicle Statistics
-        +tabbed_charts("account/" + account.id)
+    .span12.well
+      h4.text-center Vehicle Statistics
+      +tabbed_charts("account/" + account.id)

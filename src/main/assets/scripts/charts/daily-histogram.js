@@ -24,6 +24,7 @@ define("charts/daily-histogram", ['jquery', 'highcharts'], function($, Highchart
                 type: 'linear',
                 min: 0,
                 max: 200,
+                minRange: 1,
                 title: {
                     text: 'Distance (miles)'
                 }
@@ -67,7 +68,6 @@ define("charts/daily-histogram", ['jquery', 'highcharts'], function($, Highchart
             plotOptions: {
                 column: {
                     pointPadding: 0,
-                    groupPadding: 0,
                     borderWidth: 0
                 }
             },
@@ -107,7 +107,7 @@ define("charts/daily-histogram", ['jquery', 'highcharts'], function($, Highchart
                 for (var i = 0; i <= maxBins; i++) {
                     var value = parseInt(bins[i]);
                     if (value) {
-                        series.push(i, value);
+                        series.push([i, value]);
                     }
                 }
             }
