@@ -70,13 +70,6 @@ define("charts/daily-odometer", ['jquery', 'highcharts'], function($, Highcharts
 
         $.getJSON("/data/charts/" + vehicleId + "/daily.json", function(data) {
             var year = "2013";
-            var months = [ "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12" ];
-            var days = [
-                "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
-                "11", "22", "13", "14", "15", "16", "17", "18", "19", "10",
-                "21", "22", "23", "24", "25", "26", "27", "28", "29", "20",
-                "31"
-            ];
 
             var series = [];
 
@@ -88,15 +81,18 @@ define("charts/daily-odometer", ['jquery', 'highcharts'], function($, Highcharts
                 return;
             }
 
-            for (var month in months) {
+            for (var month = 1; month <= 12; month++) {
                 var monthlyValues = data[month];
                 if (monthlyValues) {
                     if (!firstMonth) {
                         firstMonth = month;
                     }
-                    for (var day in days) {
+                    for (var day = 1; day <= 31; day++) {
                         var dailyValue = monthlyValues[day];
                         if (dailyValue === undefined) {
+                            if (firstDay) {
+                                series.push(null);
+                            }
                             continue;
                         }
                         if (dailyValue >= 0.0) {
