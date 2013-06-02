@@ -112,6 +112,14 @@ define("charts/daily-odometer", ['jquery', 'highcharts'], function($, Highcharts
                 }
             }
 
+            for (var i = series.length - 1; i >= 0; i--) {
+                if (series[i] != null) {
+                    break;
+                }
+            }
+
+            series = series.slice(0, i + 1);
+
             chart.series[0].update({
                 pointStart: Date.UTC(year, firstMonth - 1, firstDay),
                 pointInterval: 24 * 3600 * 1000
