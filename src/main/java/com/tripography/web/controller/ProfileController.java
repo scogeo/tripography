@@ -43,7 +43,7 @@ public class ProfileController {
         if (account != null) {
             model.addAttribute("account", account);
 
-            logger.info("requesting vehicles for " + account.getId());
+            logger.debug("requesting vehicles for " + account.getId());
 
             List<Vehicle> vehicles = vehicleService.getVehiclesByAccount(account.getId());
 

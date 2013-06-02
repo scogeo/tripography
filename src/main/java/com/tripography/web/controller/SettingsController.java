@@ -7,6 +7,8 @@ import com.rumbleware.web.security.SaltedUser;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.hibernate.validator.constraints.ScriptAssert;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,7 +24,6 @@ import javax.validation.constraints.Size;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.Principal;
-import java.util.logging.Logger;
 
 /**
  * @author gscott
@@ -31,7 +32,7 @@ import java.util.logging.Logger;
 @RequestMapping(AppPaths.SETTINGS)
 public class SettingsController {
 
-    private static Logger logger = Logger.getLogger(SettingsController.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(SettingsController.class);
 
     @Autowired
     private UserAccountService _accountService;
@@ -45,8 +46,6 @@ public class SettingsController {
     public String displayAccountSettings(Principal principal, Model model) {
 
         UserAccount account = lookupAccount(principal);
-
-        logger.info("found account " + account );
         model.addAttribute("account", account);
 
         return "settings/account";
@@ -56,7 +55,7 @@ public class SettingsController {
     public String updateAccountSettings(Principal user,
                                         @ModelAttribute("settings") @Valid AccountForm accountForm, BindingResult bindingResult,
                                         Model model) {
-        logger.info("Received a post for updating account");
+        //logger.info("Received a post for updating account");
         return "redirect:/settings/account";
     }
 
@@ -114,7 +113,7 @@ public class SettingsController {
         if (bindingResult.hasErrors()) {
             // verify password
 
-            logger.info("woops we have errors " + bindingResult.getErrorCount());
+            logger.debug("woops we have errors " + bindingResult.getErrorCount());
         }
         else {
             UserAccount account = lookupAccount(user);
@@ -203,7 +202,7 @@ public class SettingsController {
                 //_accountService.setProfilePhoto(account.getId().toString(), file.getBytes(), file.getContentType());
             }
             catch (IOException e) {
-                logger.warning("trouble reading stream ");
+                logger.warn("trouble reading stream ");
             }
             finally {
                 if (input != null) {
