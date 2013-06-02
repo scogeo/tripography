@@ -1,12 +1,14 @@
 package com.tripography.web.config;
 
 import com.mongodb.Mongo;
+import com.mongodb.WriteConcern;
 import com.tripography.vehicles.VehicleReadConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.mongodb.config.AbstractMongoConfiguration;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.convert.CustomConversions;
 import org.springframework.data.mongodb.core.convert.DefaultMongoTypeMapper;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
@@ -30,6 +32,14 @@ public class TripDbConfig extends AbstractMongoConfiguration {
     @Override
     public Mongo mongo() throws Exception {
         return new Mongo("127.0.0.1");
+    }
+
+    @Override
+    @Bean
+    public MongoTemplate mongoTemplate() throws Exception {
+        MongoTemplate template = super.mongoTemplate();
+        template.setWriteConcern(WriteConcern.SAFE);
+        return template;
     }
 
     /*
