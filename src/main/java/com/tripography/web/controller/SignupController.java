@@ -3,6 +3,7 @@ package com.tripography.web.controller;
 import com.rumbleware.accounts.UserAccount;
 import com.rumbleware.accounts.UserAccountService;
 import com.rumbleware.dao.UniqueKeyException;
+import com.rumbleware.web.forms.FormErrors;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;
@@ -19,18 +20,21 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.support.WebApplicationObjectSupport;
 
 import javax.validation.ConstraintViolationException;
 import javax.validation.Valid;
 import javax.validation.constraints.Size;
 import java.security.Principal;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author gscott
  */
 @Controller
 @RequestMapping(AppPaths.SIGNUP)
-public class SignupController {
+public class SignupController extends WebApplicationObjectSupport {
 
     private Logger logger = LoggerFactory.getLogger(SignupController.class);
 
@@ -39,6 +43,16 @@ public class SignupController {
 
     @Autowired
     private UserAccountService accountService;
+
+    private Set<String> inviteCodes = new HashSet<String>();
+
+    public SignupController() {
+        inviteCodes.add("tripit");
+        inviteCodes.add("rumble");
+        inviteCodes.add("teslive2013");
+        inviteCodes.add("teslaroadtrip");
+        inviteCodes.add("tmc2013");
+    }
 
     @RequestMapping(method = {RequestMethod.GET })
     public String displaySingnupForm(Principal user, Model model) {
@@ -66,8 +80,18 @@ public class SignupController {
         if (user != null) {
             return "redirect:/";
         }
-        if (bindingResult.hasErrors() || !"tripit".equals(accountForm.getInvite())) {
+
+        if (accountForm.invite != null && !inviteCodes.contains(accountForm.invite.toLowerCase())) {
+            bindingResult.addError(new FieldError("account", "invite", "Unknown invite code."));
+        }
+
+        model.addAttribute("form", accountForm);
+        model.addAttribute("formErrors", new FormErrors(bindingResult, getWebApplicationContext()));
+
+        if (bindingResult.hasErrors()) {
             // Return the form again
+            //model.addAttribute("form", accountForm);
+            //model.addAttribute("formErrors", new FormErrors(bindingResult, getWebApplicationContext()));
             return "signup";
         }
         else {
@@ -82,11 +106,13 @@ public class SignupController {
             logger.info("Username is " + account.getUsername());
             try {
                 accountService.update(account);
+                logger.info("Account successfully saved");
 
             }
             catch(UniqueKeyException e) {
                 logger.warn("hit a duplicate key " + e.getKey());
-                bindingResult.addError(new FieldError("account", e.getKey(), "Already used."));
+                bindingResult.addError(new FieldError("account", e.getKey(), "already in use."));
+
                 return "signup";
             }
             catch(ConstraintViolationException e) {
@@ -96,7 +122,6 @@ public class SignupController {
             catch(DuplicateKeyException e) {
                 // TODO process exceptions
                 logger.error(e.getMessage());
-                e.printStackTrace();
             }
 
             authenticateSession(account);
