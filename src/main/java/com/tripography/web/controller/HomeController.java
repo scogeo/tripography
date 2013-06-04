@@ -3,6 +3,8 @@ package com.tripography.web.controller;
 import com.rumbleware.web.security.SaltedUser;
 import com.tripography.accounts.Account;
 import com.tripography.accounts.AccountService;
+import com.tripography.providers.VehicleProviderService;
+import com.tripography.providers.tesla.TeslaVehicleProvider;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;
@@ -31,6 +33,9 @@ public class HomeController {
     @Autowired
     AccountService accountService;
 
+    @Autowired
+    VehicleProviderService providerService;
+
     // temporarily added HEAD support to see if AWS is happy
     @RequestMapping(value = "/", method = { RequestMethod.GET, RequestMethod.HEAD })
     //@RequestMapping(value = "/")
@@ -50,10 +55,16 @@ public class HomeController {
     private String renderHomePage(String userId, Model model) {
 
         Account account = accountService.findById(userId);
-
         model.addAttribute("account", account);
 
-        return "home";
+        TeslaVehicleProvider vehicleProvider = providerService.findByAccountId(account.getObjectId());
+
+        if (vehicleProvider == null) {
+            return "redirect:/settings/vehicles";
+        }
+        else {
+            return "home";
+        }
     }
 
     public static class InviteForm {

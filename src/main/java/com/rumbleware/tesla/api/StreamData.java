@@ -46,6 +46,10 @@ public class StreamData {
         return Double.parseDouble(value);
     }
 
+    public long getTimestamp() {
+        return timestamp;
+    }
+
     public Double getOdometer() {
         return odometer;
     }

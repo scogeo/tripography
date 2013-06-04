@@ -1,8 +1,10 @@
 package com.tripography.providers;
 
 import com.rumbleware.mongodb.BaseDocument;
+import com.rumbleware.tesla.api.TeslaPortal;
 import com.tripography.vehicles.Vehicle;
 import org.bson.types.ObjectId;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
@@ -19,6 +21,7 @@ public class VehicleProvider extends BaseDocument {
     private String vendor;
 
     @Field("account")
+    @Indexed(unique = true)
     private ObjectId accountId;
 
     public VehicleProvider() {
@@ -42,7 +45,7 @@ public class VehicleProvider extends BaseDocument {
         return vendor;
     }
 
-    public List<Vehicle> getVehicles() {
+    public List<Vehicle> getVehicles(TeslaPortal portal) {
         return Collections.emptyList();
     }
 }

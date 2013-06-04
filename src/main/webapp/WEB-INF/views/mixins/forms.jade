@@ -1,6 +1,11 @@
 
 mixin form(action)
   form(method="POST", action="#{action}", id=attributes.id, class=attributes.class, data-require-elem="forms/autoprompt")
+    if formErrors && formErrors.hasFormErrors()
+      each formError in formErrors.getFormErrors()
+        div.alert.alert-error
+          strong Woops!&nbsp;
+          = formError
     block
     input(name="requestToken", type="hidden", value="#{httpRequest.getSession().getAttribute("requestToken")}")
 
@@ -21,6 +26,14 @@ mixin grouped_input(form, formErrors)
         span.help-inline= formErrors.getFieldErrors(attributes.name).get(0)
       if attributes.help
         p.help-block= attributes.help
+
+mixin grouped_text(value)
+  .control-group
+    if attributes.label
+      label.control-label= attributes.label
+    .controls
+      span.help-inline= value
+
 
 mixin grouped_select
   .control-group

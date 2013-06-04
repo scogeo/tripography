@@ -21,7 +21,7 @@ public class StreamingTest {
 
         UsernamePasswordCredentials credentials = new UsernamePasswordCredentials("george.scott@gmail.com", "kyrdn3yt3sla");
 
-        Portal portal = new Portal();
+        TeslaPortal portal = new TeslaPortal();
 
         VehicleDescriptor[] vehicles = portal.vehicles(credentials);
 

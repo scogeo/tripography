@@ -1,0 +1,15 @@
+extends ../settings
+
+block settings
+  .well
+    h4 Renew your Tesla Motors security token.
+    p
+      | Enter your Tesla Motors password to renew your security credentials.
+    hr
+    +form("/settings/vehicles/renew").form-horizontal.form6
+      fieldset
+        +grouped_text(provider.username)(label="Username").input-large
+        input(type="hidden", name="username", value=provider.username)
+        +grouped_input(label="Password", id="password", type="password", name="password").input-large
+      .form-actions
+        button.btn.btn-primary(type="submit") Renew

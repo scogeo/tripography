@@ -9,7 +9,8 @@ block content
     .span12.well
       .profile-sidebar
         h4.username= account.username
-        p 2012 Tesla Model S Performance (85 kWh)
+        each vehicle in vehicles
+          p= vehicle.makeAndModel
 
   .row
     .span12.well

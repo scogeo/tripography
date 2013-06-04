@@ -1,17 +1,16 @@
 package com.rumbleware.tesla;
 
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.rumbleware.tesla.api.Portal;
+import com.rumbleware.tesla.api.TeslaPortal;
 import com.rumbleware.tesla.api.UsernamePasswordCredentials;
+import com.tripography.vehicles.OdometerReading;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Date;
 import java.util.List;
-import java.util.concurrent.Future;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -24,7 +23,7 @@ public class TeslaVehicleTest {
 
     private static final Logger logger = LoggerFactory.getLogger(TeslaVehicleTest.class);
 
-    Portal portal = new Portal();
+    TeslaPortal portal = new TeslaPortal();
 
 
     @Test
@@ -37,15 +36,17 @@ public class TeslaVehicleTest {
 
         TeslaVehicle vehicle = vehicles.get(0);
 
-        ListenableFuture<Double> odometerFuture = vehicle.getOdometer();
+        Date now = new Date();
 
-        Double odometer = odometerFuture.get();
+        ListenableFuture<OdometerReading> odometerFuture = vehicle.getOdometer();
+
+        OdometerReading odometer = odometerFuture.get();
 
         logger.info("odometer is " + odometer);
 
         assertNotNull(odometer);
-        assertTrue("greater than zero", odometer > 0.0);
-
+        assertTrue("greater than zero", odometer.getOdometer() > 0.0);
+        //assertTrue("time greater ", odometer.getTimestamp().getTime() + 120000 > now.getTime());
     }
 
     @Ignore

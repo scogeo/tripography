@@ -1,5 +1,6 @@
 package com.tripography.vehicles;
 
+import com.rumbleware.maps.OSMAddress;
 import com.rumbleware.mongodb.DatedDocument;
 import com.tripography.providers.tesla.TeslaVehicleDocument;
 import org.bson.types.ObjectId;
@@ -10,13 +11,13 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import javax.validation.constraints.NotNull;
-import java.util.TimeZone;
+import java.util.*;
 
 /**
  * @author gscott
  */
 @Document(collection = "vehicles")
-public class Vehicle<Details> extends DatedDocument {
+public class Vehicle extends DatedDocument {
 
     @Field("a")
     @Indexed
@@ -49,6 +50,18 @@ public class Vehicle<Details> extends DatedDocument {
 
     @Field("l")
     private Boolean locationEnabled;
+
+    @Field("ra")
+    private Set<String> regionAggregates = new HashSet<>();
+
+    @Field("va")
+    private Set<String> vehicleAggregates = new HashSet<>();
+
+    @Field("r")
+    private Map<String, String> osmRegion = new HashMap<>();
+
+    @Transient
+    private Set<String> aggregateGroups;
 
     public TeslaVehicleDocument.Details getDetails() {
         return details;
@@ -102,6 +115,35 @@ public class Vehicle<Details> extends DatedDocument {
         locationEnabled = value;
     }
 
+    public void setRegionAggregates(Set<String> regionAggregates) {
+        this.regionAggregates = regionAggregates;
+    }
+
+    public String getMakeAndModel() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Tesla Model S");
+        if (details.getOptions().contains("TR01")) {
+            builder.append(" Signature");
+        }
+        if (details.getOptions().contains("PF01")) {
+            builder.append(" Performance");
+        }
+        if (details.getOptions().contains("BT85")) {
+            builder.append(" (85 kWh)");
+        }
+        if (details.getOptions().contains("BT60")) {
+            builder.append(" (60 kWh)");
+        }
+        if (details.getOptions().contains("BT40")) {
+            builder.append(" (40 kWh)");
+        }
+        return builder.toString();
+    }
+
+    public void setVehicleAggregates(Set<String> vehicleAggregates) {
+        this.vehicleAggregates = vehicleAggregates;
+    }
+
     public TimeZone getTimeZone() {
         if (timeZone != null) {
             return timeZone;
@@ -116,6 +158,46 @@ public class Vehicle<Details> extends DatedDocument {
     public void setTimeZone(TimeZone tz) {
         this.timeZone = tz;
         this.timeZoneId = tz.getID();
+    }
+
+
+    public void setRegion(OSMAddress address) {
+        osmRegion.put("country_code", address.getCountryCode());
+        osmRegion.put("state", address.getState());
+        osmRegion.put("county", address.getCounty());
+        osmRegion.put("city", address.getCity());
+        osmRegion.put("postcode", address.getPostcode());
+    }
+
+    public String getHomeLocation() {
+        if (osmRegion != null) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(osmRegion.get("city"));
+            sb.append(", ");
+            sb.append(osmRegion.get("state"));
+            return sb.toString();
+        }
+        else {
+            return null;
+        }
+    }
+
+    public Set<String> getAggregateGroupIds() {
+        if (aggregateGroups != null) {
+            return aggregateGroups;
+        }
+        else {
+            Set<String> ag = new HashSet<>();
+            ag.addAll(regionAggregates);
+            ag.addAll(vehicleAggregates);
+            ag.add("vehicle/" + getId());
+            if (ownerId != null) {
+                ag.add("account/" + ownerId);
+            }
+            ag.add("all");
+            aggregateGroups = ag;
+        }
+        return aggregateGroups;
     }
 
     @Override

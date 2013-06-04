@@ -23,6 +23,11 @@ public interface VehicleService extends BasicService<Vehicle> {
     public List<Vehicle> getAllVehicles();
 
     /**
+     *
+     */
+    public void updateOdometerReading(Vehicle vehicle, OdometerReading reading);
+
+    /**
      * Updates the vehicle's time zone using the vehicle's current location.  The vehicle will be saved to the
      * database after the update.
      *

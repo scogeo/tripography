@@ -1,0 +1,23 @@
+extends ../settings
+
+block settings
+  .well
+    h4 Welcome to tripography.
+    p
+      | You have no vehicles registered with tripography.  To register your vehicle(s) with tripography, please enter
+      |  your Tesla Motors username and password in the form below.
+    hr
+    +form("/settings/vehicles/register").form-horizontal.form6
+      fieldset
+        +grouped_input(label="Username", id="username", type="text", name="username").input-large
+        +grouped_input(label="Password", id="password", type="password", name="password").input-large
+      .form-actions
+        button.btn.btn-primary(type="submit") Register
+    hr
+    p
+      b Note:&nbsp;
+      | We use your Tesla Motors username and password to obtain
+      |  a security token (cookie) from the Tesla Motors vehicle telemetry service.  We do not access the My Tesla page on
+      |  teslamotors.com and your Tesla Motors password is never stored on our servers.  We encrypt and securely store
+      |  the security token on our servers and use it to periodically obtain telemetry data from your vehicle based
+      |  on your account settings.

@@ -1,0 +1,31 @@
+extends ../settings
+
+block settings
+  .well
+    h4 My Tesla Account Information
+    p
+      b Username:&nbsp;
+      = provider.username
+    p
+      b Vehicle Access Token Expires:&nbsp;
+      = formatter.formatDate(provider.expires)
+      a(href="/settings/vehicles/renew") renew token
+    each vehicle in vehicles
+      hr
+      h4 #{vehicle.makeAndModel}
+      p
+        b VIN:&nbsp;
+        = vehicle.VIN
+      if vehicle.odometer
+        p
+          b Odometer:&nbsp;
+          | #{vehicle.odometer.odometer} miles (last updated #{formatter.formatDate(vehicle.odometer.timestamp)})
+      p
+        b Timezone:&nbsp;
+        = vehicle.timeZone.ID
+      p
+        b Home Location:&nbsp;
+        = vehicle.homeLocation
+      p
+        b Daily Distance Tracking:&nbsp;
+        | enabled

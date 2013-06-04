@@ -3,10 +3,9 @@ package com.rumbleware.tesla;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.rumbleware.tesla.api.*;
+import com.tripography.vehicles.OdometerReading;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.Future;
 
 /**
  * @author gscott
@@ -15,26 +14,21 @@ public class TeslaVehicle {
 
     private static final Logger logger = LoggerFactory.getLogger(TeslaVehicle.class);
 
-    private final Portal portal;
+    private final TeslaPortal portal;
     private VehicleDescriptor descriptor;
     private final PortalCredentials credentials;
 
-    public TeslaVehicle(VehicleDescriptor descriptor, PortalCredentials portalCredentials, Portal portal) {
+    public TeslaVehicle(VehicleDescriptor descriptor, PortalCredentials portalCredentials, TeslaPortal portal) {
         this.descriptor = descriptor;
         this.portal = portal;
         this.credentials = portalCredentials;
-    }
-
-    public void honkHorn() {
-        CommandResponse response = portal.honkHorn(credentials, descriptor.getId());
-        System.out.println("response is " + response);
     }
 
     public DriveState driveState() {
         return portal.driveState(credentials, descriptor.getId());
     }
 
-    public ListenableFuture<Double> getOdometer() {
+    public ListenableFuture<OdometerReading> getOdometer() {
         OdometerReader reader = new OdometerReader();
         openStream(reader);
         return reader.getOdometer();
@@ -59,15 +53,16 @@ public class TeslaVehicle {
 
     public class OdometerReader implements StreamDataHandler {
 
-        private SettableFuture<Double> future = SettableFuture.create();
+        private SettableFuture<OdometerReading> future = SettableFuture.create();
 
-        public ListenableFuture<Double> getOdometer() {
+        public ListenableFuture<OdometerReading> getOdometer() {
             return future;
         }
 
         @Override
         public boolean handleData(StreamData data) {
-            future.set(data.getOdometer());
+            OdometerReading reading = new OdometerReading(data.getOdometer(), data.getTimestamp());
+            future.set(reading);
             return false;
         }
 

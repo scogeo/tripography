@@ -12,7 +12,7 @@ import java.util.Set;
 /**
  * @author gscott
  */
-public class TeslaVehicleDocument extends Vehicle<TeslaVehicleDocument.Details> {
+public class TeslaVehicleDocument extends Vehicle {
 
     @PersistenceConstructor
     public TeslaVehicleDocument() {
@@ -21,7 +21,6 @@ public class TeslaVehicleDocument extends Vehicle<TeslaVehicleDocument.Details> 
 
     public TeslaVehicleDocument(VehicleDescriptor descriptor) {
         setVIN(descriptor.getVin());
-        setName("Test");
         this.details = new Details(descriptor);
     }
 

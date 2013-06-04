@@ -15,7 +15,7 @@ import java.util.List;
 @Repository
 public interface VehicleProviderRepository  extends MongoRepository<TeslaVehicleProvider, ObjectId> {
 
-    @Query(value = "{ 'owner' : ?0 }")
-    List<TeslaVehicleProvider> findByAccountId(String accountId);
+    @Query(value = "{ 'account' : ?0 }")
+    TeslaVehicleProvider findByAccountId(ObjectId accountId);
 
 }

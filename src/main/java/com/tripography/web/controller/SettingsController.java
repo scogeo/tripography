@@ -42,6 +42,11 @@ public class SettingsController {
         return id != null ? _accountService.findById(id) : null;
     }
 
+    @RequestMapping(value = {"", "/"}, method = RequestMethod.GET)
+    public String getSettings() {
+        return "redirect:/settings/vehicles";
+    }
+
     @RequestMapping(value = "/account", method = RequestMethod.GET)
     public String displayAccountSettings(Principal principal, Model model) {
 
@@ -174,130 +179,5 @@ public class SettingsController {
         }
     }
 
-    @RequestMapping(value = "/profile", method = RequestMethod.GET)
-    public String displayProfileSettings(Model model) {
-        model.addAttribute("settings", new ProfileSettingsForm());
-        return "settings/profile";
-    }
 
-    @RequestMapping(value = "/profile/update", method = RequestMethod.POST)
-    public String udpateProfileSettings(Principal user,
-                                        @ModelAttribute("settings") @Valid ProfileSettingsForm profile,
-                                        BindingResult bindingResult,
-                                        @RequestParam(value = "image", required = false) MultipartFile file) {
-
-        if (file != null) {
-            logger.info("got an image " + file.getOriginalFilename() + " of type " + file.getContentType());
-
-            InputStream input = null;
-            try {
-                input = file.getInputStream();
-                //BufferedImage image = ImageIO.read(file.getInputStream());
-                //if (image != null) {
-                //    logger.info("image size is " + image.getWidth() + " x " + image.getHeight());
-                //}
-
-
-                UserAccount account = lookupAccount(user);
-                //_accountService.setProfilePhoto(account.getId().toString(), file.getBytes(), file.getContentType());
-            }
-            catch (IOException e) {
-                logger.warn("trouble reading stream ");
-            }
-            finally {
-                if (input != null) {
-                    try {
-                        input.close();
-                    }
-                    catch (IOException e) {
-                        // do nothing
-                    }
-                }
-            }
-
-        }
-        return "redirect:/settings/profile";
-    }
-
-    public static class ProfileSettingsForm {
-
-        private String bio;
-
-        private String location;
-
-        public String getBio() {
-            return bio;
-        }
-
-        public void setBio(String bio) {
-            this.bio = bio;
-        }
-
-        public String getLocation() {
-            return location;
-        }
-
-        public void setLocation(String location) {
-            this.location = location;
-        }
-    }
-
-    @RequestMapping(value = "/personal", method = RequestMethod.GET)
-    public String displayPersonalSettings(Model model) {
-        model.addAttribute("settings", new PersonalSettingsForm());
-        return "settings/personal";
-    }
-
-    @RequestMapping(value = "/personal/update", method = RequestMethod.POST)
-    public String udpatePersonalSettings(Principal user,
-                                         @ModelAttribute("settings") @Valid PersonalSettingsForm profile,
-                                         BindingResult bindingResult) {
-
-
-        return "redirect:/settings/personal";
-    }
-
-    public static class PersonalSettingsForm {
-
-        private String sex;
-
-        private String birthDate;
-
-        private String height;
-
-        private String weight;
-
-
-        public String getSex() {
-            return sex;
-        }
-
-        public void setSex(String sex) {
-            this.sex = sex;
-        }
-
-        public String getBirthDate() {
-            return birthDate;
-        }
-
-        public void setBirthDate(String birthDate) {
-            this.birthDate = birthDate;
-        }
-
-        public String getHeight() {
-            return height;
-        }
-
-        public void setHeight(String height) {
-            this.height = height;
-        }
-
-        public String getWeight() {
-            return weight;
-        }
-
-        public void setWeight(String weight) {
-            this.weight = weight;
-        }
-    }
 }

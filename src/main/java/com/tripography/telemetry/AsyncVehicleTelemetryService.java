@@ -2,34 +2,49 @@ package com.tripography.telemetry;
 
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.mongodb.DBObject;
 import com.rumbleware.tesla.TeslaVehicle;
-import com.rumbleware.tesla.api.Portal;
+import com.rumbleware.tesla.api.TeslaPortal;
 import com.rumbleware.tesla.api.VehicleDescriptor;
-import com.rumbleware.web.executors.SharedExecutors;
 import com.tripography.providers.VehicleProviderService;
 import com.tripography.providers.tesla.TeslaVehicleProvider;
+import com.tripography.telemetry.analytics.DailyDistanceUpdater;
+import com.tripography.telemetry.analytics.DailyHistogramUpdater;
+import com.tripography.telemetry.events.DailyUpdateEvent;
+import com.tripography.telemetry.events.DailyUpdateEventListener;
+import com.tripography.vehicles.OdometerReading;
 import com.tripography.vehicles.Vehicle;
 import com.tripography.vehicles.VehicleService;
-import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PreDestroy;
 import java.util.*;
 import java.util.concurrent.*;
 
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
-import static org.springframework.data.mongodb.core.query.Update.update;
 
 /**
+ *
+ * Processes actions based on the state of the database, after action complete, updates the state and waits
+ * for next command.
+ *
+ * Collection: dailyVehicleReading
+ * {
+ *     _id: // vehicle id?
+ *     l : { // last reading
+ *         o: 323.4 // odoomter in values
+ *         d: Date(...) // date
+ *     }
+ *     n : Date(..) // next reading.
+ *     s : // flag hmm, what here?
+ *     s : // currently Processing
+ *
+ * }
  * @author gscott
  */
 @Service("vehicleTelemetryService")
@@ -37,13 +52,15 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
 
     private static final Logger logger = LoggerFactory.getLogger(AsyncVehicleTelemetryService.class);
 
-    private VehicleService vehicleService;
-    private VehicleProviderService vehicleProviderService;
-    private MongoTemplate mongoTemplate;
+    private final VehicleService vehicleService;
+    private final VehicleProviderService vehicleProviderService;
+    private final DailyVehicleReadingRepository dailyVehicleReadingRepository;
+    private final MongoOperations mongo;
 
-    private Portal portal = new Portal();
+    private final TeslaPortal teslaPortal;
 
-    private ConcurrentHashMap<String, TrackedVehicle> trackedVehicles = new ConcurrentHashMap<String, TrackedVehicle>();
+    private final List<DailyUpdateEventListener> dailyEventListeners = new ArrayList<>();
+
 
     private ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(10, new ThreadFactory() {
         public Thread newThread(Runnable r) {
@@ -61,52 +78,273 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
         }
     });
 
-    private ConcurrentHashMap<String, TeslaVehicleProvider> providersMap = new ConcurrentHashMap<String, TeslaVehicleProvider>();
-
     @Autowired
     public AsyncVehicleTelemetryService(VehicleService vehicleService, VehicleProviderService vehicleProviderService,
-                                        MongoTemplate mongoTemplate) {
+                                        TeslaPortal teslaPortal, DailyVehicleReadingRepository readingRepository, MongoOperations mongo) {
         this.vehicleService = vehicleService;
         this.vehicleProviderService = vehicleProviderService;
-        this.mongoTemplate = mongoTemplate;
-        loadProviders();
-        loadVehicles();
+        this.teslaPortal = teslaPortal;
+        this.dailyVehicleReadingRepository = readingRepository;
+        this.mongo = mongo;
+
+        dailyEventListeners.add(new DailyDistanceUpdater(mongo));
+        dailyEventListeners.add(new DailyHistogramUpdater(mongo));
+
+        // Every minute poll for tasks.
+        scheduledExecutorService.scheduleAtFixedRate(new DailyTrackingPoller(), 0, 1, TimeUnit.MINUTES);
     }
 
-    private void loadProviders() {
-        List<TeslaVehicleProvider> providers = vehicleProviderService.findAll();
-
-        for (TeslaVehicleProvider provider : providers) {
-            providersMap.put(provider.getId(), provider);
-        }
-
-    }
-
-    private void loadVehicles() {
-        List<Vehicle> vehicles = vehicleService.getAllVehicles();
-
-        for (Vehicle vehicle : vehicles) {
-            TeslaVehicleProvider provider = providersMap.get(vehicle.getProviderId());
-            TrackedVehicle trackedVehicle = new TrackedVehicle(vehicle, provider);
-            trackedVehicle.track();
-        }
-
+    @PreDestroy
+    public void shutdown() {
+        scheduledExecutorService.shutdown();
+        executorService.shutdown();
     }
 
     @Override
-    public void startTrackingVehicle(String vehicleId) {
-        TrackedVehicle trackedVehicle = trackedVehicles.get(vehicleId);
-        if (trackedVehicle == null) {
-            Vehicle vehicle = vehicleService.findById(vehicleId);
+    public void startTrackingVehicle(Vehicle vehicle) {
+        DailyVehicleReading reading = dailyVehicleReadingRepository.findOne(vehicle.getObjectId());
 
+        // no reading found
+        if (reading != null) {
+            reading.setEnabled(true);
+            reading.setStatus(DailyVehicleReading.Status.SYNCING);
+            updateReadingTimes(reading);
+            // TODO probably need to update state
+        }
+        else {
+            reading = new DailyVehicleReading(vehicle.getObjectId());
+            reading.setEnabled(true);
+            reading.setStatus(DailyVehicleReading.Status.SYNCING);
+            reading.setLastReading(vehicle.getOdometer());
+            reading.setTimeZone(vehicle.getTimeZone());
+            updateReadingTimes(reading);
         }
 
+        dailyVehicleReadingRepository.save(reading);
     }
 
+
     @Override
-    public void stopTrackingVehicle(String vehicleId) {
+    public void stopTrackingVehicle(Vehicle vehicle) {
         //To change body of implemented methods use File | Settings | File Templates.
     }
+
+    private void updateVehicleStatistics(DailyVehicleReading vehicleReading, Vehicle vehicle, OdometerReading odometer) {
+        double dailyMileage = odometer.getOdometer() - vehicleReading.getLastReading().getOdometer();
+
+        // round it
+        dailyMileage = (double)Math.round(dailyMileage * 10) / 10;
+
+        //logger.info("The current odomter is " + odometer + " and the previous odometer was " + vehicle.getLastReading().getOdometer());
+        logger.info("Daily mileage is " + dailyMileage);
+
+        if (dailyMileage < 0.0) {
+            logger.error("woops read negative mileage");
+            return;
+        }
+
+        Calendar currentDay = Calendar.getInstance(vehicleReading.getTimeZone());
+        currentDay.setTime(vehicleReading.getForDate());
+
+        DailyUpdateEvent dailyUpdateEvent = new DailyUpdateEvent(vehicle, currentDay, dailyMileage);
+
+        for (DailyUpdateEventListener listener : dailyEventListeners) {
+            try {
+                listener.processEvent(dailyUpdateEvent);
+            }
+            catch (Exception e) {
+                logger.error("Listener " + listener + " exception on update for event " + dailyUpdateEvent, e);
+            }
+        }
+
+    }
+
+    /**
+     * Updates the vehicle document with the latest stats.
+     */
+    private void updateVehicleDocument(DailyVehicleReading reading, Vehicle vehicle, OdometerReading odometerReading) {
+        try {
+            vehicleService.updateOdometerReading(vehicle, odometerReading);
+        }
+        catch (Exception e) {
+            logger.error("Unable to update vehicle with daily stats " + vehicle.getId() + " reading " + reading);
+        }
+    }
+
+
+    private void updateWithInternalError(DailyVehicleReading reading, String message) {
+        reading.setEnabled(false);
+        reading.setStatus(DailyVehicleReading.Status.INTERNAL_ERROR);
+        updateReadingTimes(reading);
+        reading.setMessage(message);
+        logger.error("Internal error processing daily stats for vehicle " + reading.getId() + ": " + message);
+        dailyVehicleReadingRepository.save(reading);
+    }
+
+    private void updateWithReadingError(DailyVehicleReading reading, String message) {
+        reading.setStatus(DailyVehicleReading.Status.READ_ERROR);
+        updateReadingTimes(reading);
+        reading.setMessage(message);
+        logger.error("error processing daily stats for vehicle " + reading.getId() + ": " + message);
+        dailyVehicleReadingRepository.save(reading);
+    }
+
+    private void updateReadingTimes(DailyVehicleReading reading) {
+        TimeZone tz = reading.getTimeZone();
+
+        Calendar calendar = Calendar.getInstance(tz);
+
+        reading.setForDate(calendar.getTime());
+
+        calendar.add(Calendar.DAY_OF_MONTH, 1);
+
+        // This shouldn't be needed, but leave for now.
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+
+        reading.setNextReadingDate(calendar.getTime());
+
+    }
+
+    private boolean updateReadingSuccess(DailyVehicleReading reading, OdometerReading odometer) {
+
+
+        // Create a new reading object to use for the update.  Only need fields necessary to perform update
+        DailyVehicleReading newReading = new DailyVehicleReading();
+        newReading.setTimeZone(reading.getTimeZone());
+        newReading.setStatus(DailyVehicleReading.Status.SYNCING);
+
+        // Update the new reading times, needs timezone
+        updateReadingTimes(newReading);
+
+        switch (reading.getStatus()) {
+            case OK:
+            case SYNCING:
+                newReading.setStatus(DailyVehicleReading.Status.OK);
+        }
+
+        DailyVehicleReading old = mongo.findAndModify(query(
+                where("_id").is(reading.getObjectId())
+                        .and(DailyVehicleReading.STATUS).is(reading.getStatus().getValue())
+                        .and(DailyVehicleReading.NEXT_READING_DATE).is(reading.getNextReadingDate())),
+                new Update()
+                        .set(DailyVehicleReading.STATUS, newReading.getStatus().getValue())
+                        .set(DailyVehicleReading.FOR_DATE, newReading.getForDate())
+                        .set(DailyVehicleReading.NEXT_READING_DATE, newReading.getNextReadingDate())
+                        .set(DailyVehicleReading.ODOMETER_READING, odometer)
+                        .unset(DailyVehicleReading.MESSAGE)
+                , DailyVehicleReading.class);
+
+        return old != null;
+    }
+
+
+    private void updateVehicle(final DailyVehicleReading reading) {
+        if (!reading.isEnabled()) {
+            return;
+        }
+
+        switch (reading.getStatus()) {
+            case AUTH_ERROR:
+            case INTERNAL_ERROR:
+                // Ignore this vehicle, requires user intervention.
+                return;
+        }
+
+        try {
+            // Lookup vehicle and provider
+            final Vehicle vehicle = vehicleService.findById(reading.getId());
+            if (vehicle == null) {
+                updateWithInternalError(reading, "Vehicle id not found.");
+                return;
+            }
+
+            final TeslaVehicleProvider vehicleProvider = vehicleProviderService.findById(vehicle.getProviderId());
+            if (vehicleProvider == null) {
+                updateWithInternalError(reading, "Provider not found.");
+                return;
+            }
+
+
+            // TODO, should be able to skip this step, no need to get descriptor, vehicle id should be sufficient.
+            VehicleDescriptor descriptor = teslaPortal.vehicle(vehicleProvider.getCredentials(), vehicle.getDetails().getPortalId());
+            TeslaVehicle tv = new TeslaVehicle(descriptor, vehicleProvider.getCredentials(), teslaPortal);
+
+            Futures.addCallback(tv.getOdometer(), new FutureCallback<OdometerReading>() {
+
+                @Override
+                public void onSuccess(OdometerReading result) {
+                    if (result == null) {
+                        // TODO can this happen?
+                        updateWithReadingError(reading, "Unable to read odometer.");
+                        logger.error("error while reading odometer, null result" + reading);
+                    }
+
+                    logger.info("Read an odometer for vehicle " + result);
+
+                    try {
+                        if (!updateReadingSuccess(reading, result)) {
+                            logger.info("Update already appears to have occurred for " + reading);
+                            return;
+                        }
+                    }
+                    catch (Exception e) {
+                        updateWithInternalError(reading, "Unable to update status.");
+                        logger.error("failed to update reading for " + reading, e);
+                    }
+
+                    try {
+                        logger.info("Updating vehicle stats for reading " + reading + " odometer " + result);
+                        // Update the vehicle document
+                        updateVehicleDocument(reading, vehicle, result);
+
+                        // Only update stats if previous reading was OK
+                        if (reading.getStatus() == DailyVehicleReading.Status.OK) {
+                            updateVehicleStatistics(reading, vehicle, result);
+                        }
+                    }
+                    catch (Exception e) {
+                        logger.error("failed to update vehilce stats " + reading, e);
+                    }
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    updateWithReadingError(reading, "Unable to read odometer.");
+                    logger.error("error while reading odometer " + reading, t);
+                }
+            });
+
+        }
+        catch (Throwable t) {
+            updateWithReadingError(reading, "Unexpected error occurred.");
+            logger.error("Unexpected error while performing reading " + reading, t);
+        }
+
+    }
+
+    class DailyTrackingPoller implements Runnable {
+
+        @Override
+        public void run() {
+            try {
+                Date now = new Date();
+                List<DailyVehicleReading> readings = dailyVehicleReadingRepository.findByNextReadingDateLessThan(now);
+                logger.info("Polling at " + now);
+                logger.info("Found " + readings.size());
+
+                for (DailyVehicleReading reading : readings) {
+                    updateVehicle(reading);
+                }
+            }
+            catch (Throwable t) {
+                logger.error("Unexpected exception", t);
+            }
+        }
+    }
+
 
     /**
      * Tracking levels.
@@ -283,357 +521,5 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
      *
      *
      */
-    enum TrackingLevel {
-        DAILY,
-        TRIPS,
-    }
-
-    class DailyOdometerJob implements Runnable {
-
-        private final TrackedVehicle vehicle;
-        private final Calendar currentDay;
-
-        public DailyOdometerJob(Calendar currentDay, TrackedVehicle vehicle) {
-            this.currentDay = (Calendar) currentDay.clone();
-            this.vehicle = vehicle;
-        }
-
-        @Override
-        public void run() {
-            try {
-                ListenableFuture<Double> odometer = vehicle.readOdometer();
-
-                Futures.addCallback(odometer, new FutureCallback<Double>() {
-
-                    @Override
-                    public void onSuccess(Double result) {
-                        if (result != null) {
-                            logger.info("Read an odometer for vehicle " + result);
-                            try {
-                                updateVehicleStatistics(result);
-                                vehicle.setLastOdometer(result);
-                            }
-                            catch (Exception e) {
-                                logger.warn("woops", e);
-                            }
-
-                        }
-                        else {
-                            // retry
-                            // TODO implement a retryable job.
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Throwable t) {
-                        logger.warn("Woops got an error while reading odometer " + t);
-                    }
-                });
-
-                vehicle.scheduleDailyOdometer();
-
-            }
-
-            catch (Exception e) {
-                logger.info("woops caught an exception ", e);
-            }
-        }
-
-        /**
-         * Vehicle stats for daily distance ids are as follows:
-         *
-         * /{year}/vehicle/{vehicleId} - daily distance for this vehicle
-         * /{year}/account/{accountId} - daily distance for all vehicles in this account
-         * /{year}/region/{country_code}/...
-         *
-         * // For us country_code, then the following are used:
-         * /{year}/region/us/postal/{zipcode}
-         * /{year}/region/us/{statecode_or_megaregion}
-         * /{year}/region/us/{statecode}/city/{city_name}
-         *
-         * // For the make model
-         * /{year}/make/tesla/s/
-         * /{year}/make/tesla/s/battery/{battery_size}
-         *
-         * @param odometer
-         */
-        private void updateVehicleStatistics(Double odometer) {
-            double dailyMileage = odometer - vehicle.getLastOdometer();
-
-            // round it
-            dailyMileage = (double)Math.round(dailyMileage * 10) / 10;
-
-            logger.info("The current odomter is " + odometer + " and the previous odometer was " + vehicle.getLastOdometer());
-            logger.info("Daily mileage is " + dailyMileage);
-
-            if (dailyMileage < 0.0) {
-                logger.error("woops read negative mileage");
-            }
-
-            logger.info("tracked vehicle " + vehicle.vehicle.getObjectId());
-
-            int month = currentDay.get(Calendar.MONTH) + 1;
-
-            String monthAndDay = month + "." + currentDay.get(Calendar.DAY_OF_MONTH);
-
-            logger.info("month and day " + monthAndDay);
-
-            int year = currentDay.get(Calendar.YEAR);
-
-            String id = year + "/vehicle/" + vehicle.vehicle.getId();
-
-            // This should peform a find and modify to make sure that the odometer value is not updated
-            // by another process.  If so, then other stats should not be run.  Process should then track to see
-            // if other vehicles are tracking it.
-
-            // Increment the vehicle driven count by this amount.  Used to keep track of the number of days
-            // the vehicle was driven.
-            int vehicleDriven = dailyMileage > 0.0 ? 1 : 0;
-
-            mongoTemplate.upsert(query(where("_id").is(id)),
-                    new Update()
-                            .set("o.v", odometer)
-                            .set("o.t", new Date())
-                            .set(monthAndDay, dailyMileage) // Note, setting this will override default of -1, never increment.
-                            .inc("a.s", dailyMileage)
-                            .inc("a.d", vehicleDriven)
-                            .inc(month + ".a.s", dailyMileage)
-                            .inc(month + ".a.d", vehicleDriven)
-                    , "dailyDistance");
-
-            String accountId = year + "/account/" + vehicle.vehicle.getAccountId();
-
-
-            mongoTemplate.upsert(query(where("_id").is(accountId)),
-                    new Update()
-                            .inc(monthAndDay, dailyMileage) // Note, setting this will override default of -1, never increment.
-                            .inc("a.s", dailyMileage)
-                            .inc("a.d", vehicleDriven)
-                            .inc(month + ".a.s", dailyMileage)
-                            .inc(month + ".a.d", vehicleDriven)
-                    , "dailyDistance");
-
-
-            // Redo query for groups
-
-
-
-            List<String> groupIds = getGroupIds();
-
-            // TODO fix this shit.  mongotemplate doesn't support lists in in() for some reason.  For now, submit
-            // multiple updates.  Ok for low # of users.
-
-            for (String groupId : groupIds) {
-                mongoTemplate.upsert(query(where("_id").is(groupId)),
-                        new Update()
-                                .inc(monthAndDay, dailyMileage)
-                                .inc("a.s", dailyMileage)
-                                .inc(month + ".a.s", dailyMileage),
-                        "dailyDistance");
-            }
-
-
-            // If we drove at all, then update the mileage histograms.
-            if (dailyMileage > 0.0) {
-
-                String vehicleId = "vehicle/" + vehicle.vehicle.getId();
-                Integer bucket = (int)Math.floor(dailyMileage);
-
-                // For histograms, intialize with values of 0, when rendering graph, treat zero as null or no data.
-
-                mongoTemplate.upsert(query(where("_id").is(vehicleId)),
-                        new Update()
-                                .inc("s", 1)
-                                .inc("b." + bucket.toString(), 1)
-                        , "dailyHistogram");
-
-                String histAccountId = "account/" + vehicle.vehicle.getAccountId();
-
-                mongoTemplate.upsert(query(where("_id").is(histAccountId)),
-                        new Update()
-                                .inc("s", 1)
-                                .inc("b." + bucket.toString(), 1)
-                        , "dailyHistogram");
-
-
-                // TODO fix this shit.  mongotemplate doesn't support lists in in() for some reason.  For now, submit
-                // multiple updates.  Ok for low # of users.
-
-                for (String groupId : groupIds) {
-                    mongoTemplate.upsert(query(where("_id").is(groupId)),
-                            new Update()
-                                    .inc("s", 1)
-                                    .inc("b." + bucket.toString(), 1)
-                            , "dailyHistogram");
-                }
-            }
-
-
-        }
-
-        private List<String> getGroupIds() {
-            List<String> groupIds = new ArrayList<String>();
-
-            if (true) {
-                return groupIds;
-            }
-            groupIds.add("2013/all");
-
-            // Calculate regions"
-
-            groupIds.add("2013/region/us"); // united states
-            groupIds.add("2013/region/us/ca"); // california
-            groupIds.add("2013/region/us/ca/city/sunnyvale"); // city
-            groupIds.add("2013/region/us/ca/county/santa_clara"); // county
-            groupIds.add("2013/region/us/94085"); // postal code
-            groupIds.add("2013/region/us/norcal"); // US "mega-region" based on county
-
-
-            // TODO we need to add the notion of regions tied to either postal code or
-            // county.  In the US, county seems to work well.  Regions may or may not be overlapping.
-            /**
-             * {
-             *    country: "us"  // ISO code
-             *    slug: "norcal",
-             *    name: "Northern California",
-             *    type: "postal" || "county" || "state", etc..
-             *    members: [ "Alameda", "Contra Costa", "Marin", "Napa", ...]
-             *    wikipeida: "http://en.wikipedia.org/..."
-             *
-             * }
-             */
-
-
-
-
-            // These should come from the provider.
-            groupIds.add("2013/make/tesla");
-            groupIds.add("2013/make/tesla/s");
-            groupIds.add("2013/make/tesla/s/battery/85");
-
-            // TODO Now query DB to see what groups we belong to. :)
-            return groupIds;
-
-        }
-
-        /**
-         * Updates the vehicle object's stats.  This includes the vehicle's odometer and refreshes
-         * any other vehicle stats such as firmware version, international settings, etc.
-         */
-        private void updateVehicleInfo() {
-
-        }
-
-    }
-
-
-    class TrackedVehicle {
-
-        private final Vehicle vehicle;
-
-        private Double lastOdometer;
-
-        private TeslaVehicleProvider vehicleProvider;
-
-        private ScheduledFuture<?> dailyOdometerFuture;
-
-        public TrackedVehicle(Vehicle vehicle, TeslaVehicleProvider provider) {
-            this.vehicle = vehicle;
-            this.vehicleProvider = provider;
-        }
-
-        public void track() {
-
-            try {
-
-                String id = "2013" + "/vehicle/" + vehicle.getId();
-
-                DBObject result = mongoTemplate.findOne(query(where("_id").is(id)), DBObject.class, "dailyDistance");
-
-                if (result != null) {
-                    logger.info("got a result " + result);
-                    DBObject previousOdometer = (DBObject) result.get("o");
-                    logger.info("got an o " + previousOdometer);
-                    if (previousOdometer != null) {
-                        Double value = (Double)previousOdometer.get("v");
-                        lastOdometer = value;
-                        logger.info("Woo hoo got a last odometer value " + lastOdometer);
-                    }
-                }
-
-                if (lastOdometer == null) {
-                    logger.info("Getting latest odometer");
-
-                    Future<Double> odometer = readOdometer();
-
-                    lastOdometer = odometer.get();
-                }
-
-                scheduleDailyOdometer();
-            }
-            catch (Exception e) {
-                throw new IllegalStateException(e);
-            }
-
-            // Schedule a job
-
-        }
-
-        Double getLastOdometer() {
-            return lastOdometer;
-        }
-
-        void setLastOdometer(Double lastOdometer) {
-            this.lastOdometer = lastOdometer;
-        }
-
-        public void stopTracking() {
-            if (dailyOdometerFuture != null) {
-                dailyOdometerFuture.cancel(false);
-            }
-        }
-
-        public ListenableFuture<Double> readOdometer() {
-            logger.info("Getting the vehicle's current descriptor ");
-            VehicleDescriptor descriptor = portal.vehicle(vehicleProvider.getCredentials(), vehicle.getDetails().getPortalId());
-
-            TeslaVehicle tv = new TeslaVehicle(descriptor, vehicleProvider.getCredentials(), portal);
-
-            return tv.getOdometer();
-        }
-
-
-
-        void scheduleDailyOdometer() {
-            TimeZone tz = vehicle.getTimeZone();
-            if (tz == null) {
-                logger.warn("Vehicle has no timezone " + vehicle);
-                return;
-            }
-            Calendar calendar = Calendar.getInstance(tz);
-            // Set calendar to midnight of the next day.
-
-            DailyOdometerJob job = new DailyOdometerJob(calendar, this);
-
-            //calendar.add(Calendar.MINUTE, 1);
-
-
-            calendar.add(Calendar.DAY_OF_MONTH, 1);
-            calendar.set(Calendar.HOUR_OF_DAY, 0);
-            calendar.set(Calendar.MINUTE, 0);
-            calendar.set(Calendar.SECOND, 0);
-            calendar.set(Calendar.MILLISECOND, 0);
-
-            long howMany = calendar.getTimeInMillis() - System.currentTimeMillis();
-
-            //logger.info("Current odometer is " + readOdometer());
-
-            logger.info("Scheduling a vehicle to check odometer in " + howMany);
-
-            dailyOdometerFuture = scheduledExecutorService.schedule(job, howMany, TimeUnit.MILLISECONDS);
-        }
-
-
-    }
 
 }

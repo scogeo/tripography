@@ -18,7 +18,7 @@ public class MongoVehicleAnalyticsService implements VehicleAnalyticsService {
     private MongoTemplate mongoTemplate;
 
     @Autowired
-    MongoVehicleAnalyticsService(MongoTemplate mongoTemplate) {
+    public MongoVehicleAnalyticsService(MongoTemplate mongoTemplate) {
         this.mongoTemplate = mongoTemplate;
     }
 

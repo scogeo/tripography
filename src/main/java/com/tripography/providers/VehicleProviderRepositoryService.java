@@ -3,6 +3,7 @@ package com.tripography.providers;
 import com.rumbleware.dao.BasicRepositoryService;
 import com.rumbleware.tesla.TeslaVehicle;
 import com.tripography.providers.tesla.TeslaVehicleProvider;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,5 +23,10 @@ public class VehicleProviderRepositoryService extends BasicRepositoryService<Tes
     @Override
     public List<TeslaVehicleProvider> findAll() {
         return repository.findAll();
+    }
+
+    @Override
+    public TeslaVehicleProvider findByAccountId(ObjectId accountId) {
+        return repository.findByAccountId(accountId);
     }
 }

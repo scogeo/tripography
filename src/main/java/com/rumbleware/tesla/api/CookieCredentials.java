@@ -14,7 +14,7 @@ public class CookieCredentials implements PortalCredentials {
 
     public CookieCredentials(String username, String cookie) {
         this.username = username;
-        this.cookie = new Cookie(Portal.USER_CREDENTIAL_COOKIE, cookie);
+        this.cookie = new Cookie(TeslaPortal.USER_CREDENTIAL_COOKIE, cookie);
     }
 
     @Override

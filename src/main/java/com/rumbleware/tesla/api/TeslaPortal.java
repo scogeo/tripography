@@ -7,6 +7,7 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
+import com.sun.jersey.api.client.filter.LoggingFilter;
 import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBufferIndexFinder;
@@ -14,6 +15,7 @@ import org.jboss.netty.buffer.ChannelBuffers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PreDestroy;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -21,9 +23,9 @@ import java.nio.charset.Charset;
 /**
  * @author gscott
  */
-public class Portal {
+public class TeslaPortal {
 
-    private static final Logger logger = LoggerFactory.getLogger(Portal.class);
+    private static final Logger logger = LoggerFactory.getLogger(TeslaPortal.class);
 
     private final Client restClient;
 
@@ -51,11 +53,11 @@ public class Portal {
     private final VehicleSimpleCommand honkHornCommand = new VehicleSimpleCommand("honk_horn");
     private final VehicleSimpleCommand wakeupCommand = new VehicleSimpleCommand("wake_up");
 
-    public Portal() {
+    public TeslaPortal() {
         this(DEFAULT_PORTAL_HOST, DEFAULT_STREAMING_HOST);
     }
 
-    public Portal(String portalHost, String streamingHost) {
+    public TeslaPortal(String portalHost, String streamingHost) {
         this.portalHost = portalHost;
         this.streamingHost = streamingHost;
 
@@ -75,6 +77,15 @@ public class Portal {
         builder.setIdleConnectionTimeoutInMs(5 * 60 * 1000);
 
         asyncClient = new AsyncHttpClient(builder.build());
+
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        logger.info("Shutting down the Tesla portal");
+        if (asyncClient != null) {
+            asyncClient.close();
+        }
 
     }
 
@@ -236,6 +247,8 @@ public class Portal {
 
     public class VehicleRequest<Response> {
 
+        public int MAX_RETRIES = 1;
+
         protected final Class<Response> responseClass;
 
         public VehicleRequest(Class<Response> responseClass) {
@@ -247,13 +260,40 @@ public class Portal {
         }
 
         public Response execute(PortalCredentials credentials, String id) {
-            WebResource.Builder resource = restClient.resource(getUriTemplate(id)).getRequestBuilder();
+            int sleepIncrement = 250;
 
-            credentials.sign(resource);
+            for (int retryCount = 0, sleepCount = 0; retryCount < MAX_RETRIES; retryCount++, sleepCount += sleepIncrement) {
+                if (sleepCount > 0) {
+                    try {
+                        Thread.sleep(sleepCount);
+                    }
+                    catch (InterruptedException e) {
 
-            ClientResponse response = resource.accept(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
+                    }
+                }
+                try {
+                    WebResource.Builder resource = restClient.resource(getUriTemplate(id)).getRequestBuilder();
 
-            return response.getEntity(responseClass);
+                    credentials.sign(resource);
+
+                    ClientResponse response = resource.accept(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
+
+                    if (response.getStatus() == ClientResponse.Status.OK.getStatusCode()) {
+                        return response.getEntity(responseClass);
+                    }
+                    else if (response.getStatus() == ClientResponse.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                        throw new TeslaServerErrorException();
+                    }
+                    else {
+                        logger.warn("Tela API return status code " + response.getStatus());
+                    }
+                }
+                catch (Exception e) {
+                    logger.error("Error connecting to Tesla Portal", e);
+                }
+            }
+
+            throw new TeslaPortalOperationException("Operation failed");
         }
 
     }

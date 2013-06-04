@@ -2,6 +2,7 @@ package com.tripography.providers;
 
 import com.rumbleware.dao.BasicService;
 import com.tripography.providers.tesla.TeslaVehicleProvider;
+import org.bson.types.ObjectId;
 
 import java.util.List;
 
@@ -12,4 +13,5 @@ public interface VehicleProviderService extends BasicService<TeslaVehicleProvide
 
     List<TeslaVehicleProvider> findAll();
 
+    TeslaVehicleProvider findByAccountId(ObjectId accountId);
 }

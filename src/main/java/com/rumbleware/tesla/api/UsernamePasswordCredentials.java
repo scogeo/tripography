@@ -4,7 +4,6 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.RequestBuilder;
 import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.filter.LoggingFilter;
 import com.sun.jersey.api.representation.Form;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.NewCookie;
 import java.net.HttpCookie;
 import java.util.Date;
 import java.util.List;
@@ -33,7 +31,7 @@ public class UsernamePasswordCredentials implements PortalCredentials {
     private String host;
 
     public UsernamePasswordCredentials(String username, String password) {
-        this(username, password, Portal.DEFAULT_PORTAL_HOST);
+        this(username, password, TeslaPortal.DEFAULT_PORTAL_HOST);
     }
 
     public UsernamePasswordCredentials(String username, String password, String hostname) {
@@ -63,10 +61,7 @@ public class UsernamePasswordCredentials implements PortalCredentials {
             List<HttpCookie> cookies = HttpCookie.parse(value);
 
             for (HttpCookie cookie : cookies) {
-                //logger.info("cookie age " + cookie.getMaxAge());
-                //long time = System.currentTimeMillis() + (1000 * cookie.getMaxAge());
-                //logger.info("expires " + new Date(time));
-                if (cookie.getName().equals(Portal.USER_CREDENTIAL_COOKIE)) {
+                if (cookie.getName().equals(TeslaPortal.USER_CREDENTIAL_COOKIE)) {
                     credentials = cookie;
                     this.httpCookie = cookie;
                     this.cookie = new Cookie(cookie.getName(), cookie.getValue());

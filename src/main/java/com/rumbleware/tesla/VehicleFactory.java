@@ -1,6 +1,6 @@
 package com.rumbleware.tesla;
 
-import com.rumbleware.tesla.api.Portal;
+import com.rumbleware.tesla.api.TeslaPortal;
 import com.rumbleware.tesla.api.PortalCredentials;
 import com.rumbleware.tesla.api.VehicleDescriptor;
 
@@ -12,7 +12,7 @@ import java.util.List;
  */
 public abstract class VehicleFactory {
 
-    public static List<TeslaVehicle> getVehicles(Portal portal, PortalCredentials credentials) {
+    public static List<TeslaVehicle> getVehicles(TeslaPortal portal, PortalCredentials credentials) {
 
         VehicleDescriptor[] descriptors = portal.vehicles(credentials);
 
