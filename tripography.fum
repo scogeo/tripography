@@ -18,6 +18,9 @@ settings "aws:autoscaling:asg" => {
         "Xms" => "512m",
         "Xmx" => "512m",
         "XX:MaxPermSize" => "128m"
+    },
+    "aws:elasticbeanstalk:hostmanager" => {
+        "LogPublicationControl" => true
     }
 
 stage :production do
@@ -69,7 +72,7 @@ stage :build do
 
   solution_stack "64bit Amazon Linux running Tomcat 7"
 
-  #version '1.0.0-04d5c3bbe2'
+  #version '1.0.0-e54199d361'
   zone 'tripography.com' do
     elb_alias 'build'
   end
