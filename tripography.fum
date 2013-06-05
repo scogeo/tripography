@@ -28,6 +28,7 @@ stage :production do
         "Notification Topic ARN" => "arn:aws:sns:us-east-1:298563465266:tripography-production-webapp"
     },
     "aws:autoscaling:launchconfiguration" => {
+            "InstanceType" => "c1.medium",
             "ImageId" => "ami-5d7d1434",
             "SecurityGroups" => "prod-app,prod-ssh"
     },

@@ -331,9 +331,14 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
         public void run() {
             try {
                 Date now = new Date();
+
+                logger.debug("Polling for vehicles to update");
+
                 List<DailyVehicleReading> readings = dailyVehicleReadingRepository.findByNextReadingDateLessThan(now);
-                logger.info("Polling at " + now);
-                logger.info("Found " + readings.size());
+
+                if (readings.size() > 0) {
+                    logger.info("Found " + readings.size() + " during daily update poll");
+                }
 
                 for (DailyVehicleReading reading : readings) {
                     updateVehicle(reading);
