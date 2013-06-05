@@ -2,6 +2,7 @@ package com.tripography.web.controller;
 
 import com.rumbleware.accounts.UserAccount;
 import com.rumbleware.accounts.UserAccountService;
+import com.rumbleware.accounts.Username;
 import com.rumbleware.dao.UniqueKeyException;
 import com.rumbleware.web.forms.FormErrors;
 import org.hibernate.validator.constraints.Email;
@@ -204,6 +205,7 @@ public class SignupController extends WebApplicationObjectSupport {
 
         @NotEmpty
         @Size(max = 30)
+        @Username
         private String username;
 
 
