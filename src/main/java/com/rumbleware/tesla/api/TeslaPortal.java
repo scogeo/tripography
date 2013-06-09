@@ -247,7 +247,7 @@ public class TeslaPortal {
 
     public class VehicleRequest<Response> {
 
-        public int MAX_RETRIES = 1;
+        public int MAX_RETRIES = 3;
 
         protected final Class<Response> responseClass;
 
@@ -260,7 +260,7 @@ public class TeslaPortal {
         }
 
         public Response execute(PortalCredentials credentials, String id) {
-            int sleepIncrement = 250;
+            int sleepIncrement = 500;
 
             for (int retryCount = 0, sleepCount = 0; retryCount < MAX_RETRIES; retryCount++, sleepCount += sleepIncrement) {
                 if (sleepCount > 0) {
@@ -282,7 +282,7 @@ public class TeslaPortal {
                         return response.getEntity(responseClass);
                     }
                     else if (response.getStatus() == ClientResponse.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                        throw new TeslaServerErrorException();
+                        throw new TeslaServerErrorException(response.toString());
                     }
                     else {
                         logger.warn("Tela API return status code " + response.getStatus());
