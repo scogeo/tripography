@@ -30,6 +30,8 @@ package com.tripography.telemetry.analytics;
 public interface DailyDistance {
 
     public static final String COLLECTION_NAME = "dailyDistance";
+    public static final String SCHEMA_KEY = "v";
+
     public static final int SCHEMA_VERSION = 1;
 
     public enum READING_FLAG {
