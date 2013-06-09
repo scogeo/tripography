@@ -74,8 +74,11 @@ public class VehicleRepositoryTest {
 
         Set<String> keys = object.keySet();
 
-        assertEquals(5, keys.size());
+        //logger.info("object is " + object);
+
+        assertEquals(7, keys.size());
         assertEquals(vehicle.getObjectId(), object.get("_id"));
+        assertEquals("5YJS00XXX", object.get("v"));
 
 
     }
