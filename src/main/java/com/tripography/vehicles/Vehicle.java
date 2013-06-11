@@ -162,18 +162,29 @@ public class Vehicle extends DatedDocument {
 
 
     public void setRegion(OSMAddress address) {
-        osmRegion.put("country_code", address.getCountryCode());
-        osmRegion.put("state", address.getState());
-        osmRegion.put("county", address.getCounty());
-        osmRegion.put("city", address.getCity());
-        osmRegion.put("postcode", address.getPostcode());
+        setOSMRegionField("country_code", address.getCountryCode());
+        setOSMRegionField("state", address.getState());
+        setOSMRegionField("county", address.getCounty());
+        setOSMRegionField("city", address.getCity());
+        setOSMRegionField("town", address.getTown());
+        setOSMRegionField("village", address.getVillage());
+        setOSMRegionField("postcode", address.getPostcode());
+    }
+
+    private void setOSMRegionField(String name, String value) {
+        if (value != null) {
+            osmRegion.put(name, value);
+        }
     }
 
     public String getHomeLocation() {
         if (osmRegion != null) {
             StringBuilder sb = new StringBuilder();
-            sb.append(osmRegion.get("city"));
-            sb.append(", ");
+            String county = osmRegion.get("county");
+            if (county != null) {
+                sb.append(county);
+                sb.append((", "));
+            }
             sb.append(osmRegion.get("state"));
             return sb.toString();
         }

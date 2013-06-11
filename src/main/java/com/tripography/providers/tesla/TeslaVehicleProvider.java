@@ -167,20 +167,18 @@ public class TeslaVehicleProvider extends VehicleProvider {
         String country = address.getCountryCode();
         if (country != null) {
             String countryPath = "region/" + country;
-
             aggregates.add(countryPath);
-
             countryPath += "/";
 
-            String statePath = countryPath + lowerUnderScore(address.getState());
-            aggregates.add(statePath);
+            if (address.getState() != null) {
+                String statePath = countryPath + lowerUnderScore(address.getState());
+                aggregates.add(statePath);
+                statePath += "/";
 
-            statePath += "/";
-
-            aggregates.add(statePath + "county/" + lowerUnderScore(address.getCounty()));
-
-            aggregates.add(statePath + "city/" + lowerUnderScore(address.getCity()));
-
+                if (address.getCounty() != null) {
+                    aggregates.add(statePath + "county/" + lowerUnderScore(address.getCounty()));
+                }
+            }
 
         }
         return aggregates;
