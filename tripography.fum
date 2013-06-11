@@ -3,7 +3,8 @@ application_name "tripography-web"
 
 settings "aws:autoscaling:asg" => {
         "MinSize" => 1,
-        "MaxSize" => 1
+        "MaxSize" => 1,
+        "Custom Availability Zones" => "us-east-1a"
     },
     "aws:autoscaling:launchconfiguration" => {
         "InstanceType" => "m1.small",
