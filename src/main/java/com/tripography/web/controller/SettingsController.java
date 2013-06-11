@@ -2,6 +2,7 @@ package com.tripography.web.controller;
 
 import com.rumbleware.accounts.UserAccount;
 import com.rumbleware.accounts.UserAccountService;
+import com.rumbleware.web.forms.FormErrors;
 import com.rumbleware.web.security.PasswordUtil;
 import com.rumbleware.web.security.SaltedUser;
 import org.hibernate.validator.constraints.Email;
@@ -13,11 +14,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.context.support.WebApplicationObjectSupport;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Size;
@@ -30,7 +35,7 @@ import java.security.Principal;
  */
 @Controller
 @RequestMapping(AppPaths.SETTINGS)
-public class SettingsController {
+public class SettingsController extends WebApplicationObjectSupport {
 
     private static final Logger logger = LoggerFactory.getLogger(SettingsController.class);
 
@@ -104,45 +109,55 @@ public class SettingsController {
 
     @RequestMapping(value = "/password", method = RequestMethod.GET)
     public String displayPasswordSettings(Principal principal, Model model) {
-        UserAccount account = lookupAccount(principal);
-        model.addAttribute("account", account);
-        model.addAttribute("settings", new PasswordSettingsForm());
         return "settings/password";
     }
 
     @RequestMapping(value = "/password/update", method = RequestMethod.POST)
     public String udpatePasswordSettings(Principal user,
                                          @ModelAttribute("settings") @Valid PasswordSettingsForm form,
-                                         BindingResult bindingResult) {
+                                         BindingResult bindingResult,
+                                         Model model,
+                                         RedirectAttributes redirectAttrs) {
+
+        UserAccount account = lookupAccount(user);
+
+        if (!form.getNewPassword().equals(form.getConfirmPassword())) {
+            logger.debug("Passwords do not match.");
+            bindingResult.addError(new ObjectError("password", "New and verify passwords do not match."));
+            form.setNewPassword("");
+            form.setConfirmPassword("");
+        }
+
+        if (form.getCurrentPassword() != null &&
+                !PasswordUtil.isPasswordValid(account.getHashedPassword(), form.currentPassword, account.getId())) {
+            bindingResult.addError(new FieldError("password", "currentPassword", "Current password not correct."));
+        }
 
         if (bindingResult.hasErrors()) {
             // verify password
-
+            model.addAttribute("form", form);
+            model.addAttribute("formErrors", new FormErrors(bindingResult, getWebApplicationContext()));
             logger.debug("woops we have errors " + bindingResult.getErrorCount());
+            return "/settings/password";
+        }
+
+
+        // Just another safety check
+        if (PasswordUtil.isPasswordValid(account.getHashedPassword(), form.currentPassword, account.getId())) {
+            // update the password
+            _accountService.updatePassword(account.getId(), form.newPassword);
+            logger.info("User " + account.getUsername() + " updated password.");
+            redirectAttrs.addFlashAttribute("message", "Your password has been changed.");
+            return "redirect:/settings/password";
         }
         else {
-            UserAccount account = lookupAccount(user);
-            if (account != null) {
-                // TODO This check is no longer useufl with BCrypt, check logic here
-                if (account.getHashedPassword().equals(PasswordUtil.hashPassword(account.getId(), form.currentPassword))) {
-                    // update the password
-                    logger.info("updating password");
-                    _accountService.updatePassword(account.getId(), form.newPassword);
-                }
-                else {
-                    logger.info("passwords do not match");
-                }
-            }
-            else {
-                // todo - shouldn't happen
-            }
+            throw new IllegalStateException();
         }
-        return "redirect:/settings/password";
     }
 
 
 
-    @ScriptAssert(lang = "javascript", script = "_this.newPassword.equals(_this.confirmPassword)")
+    //@ScriptAssert(lang = "javascript", script = "_this.newPassword.equals(_this.confirmPassword)")
     public static class PasswordSettingsForm {
 
         @NotEmpty
@@ -176,6 +191,15 @@ public class SettingsController {
 
         public void setConfirmPassword(String confirmPassword) {
             this.confirmPassword = confirmPassword;
+        }
+
+        @Override
+        public String toString() {
+            return "PasswordSettingsForm{" +
+                    "currentPassword='" + currentPassword + '\'' +
+                    ", newPassword='" + newPassword + '\'' +
+                    ", confirmPassword='" + confirmPassword + '\'' +
+                    '}';
         }
     }
 
