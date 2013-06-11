@@ -1,0 +1,30 @@
+extends layout
+
+block admin
+  h2 Invite Requests
+  +form("/olympus/invites/update")#invitesForm
+    .btn-group
+      button.btn Action
+      button.btn.dropdown-toggle(data-toggle="dropdown")
+        span.caret
+      ul.dropdown-menu
+        li
+          a(href="#", onclick="$('#invitesForm').submit()") Invite
+        li.divider
+        li
+          button(href="#").button Delete
+    table.table.table-striped
+      thead
+        tr
+          th Select
+          th Name
+          th Value
+      tbody
+        each request in requests
+          tr
+            td
+              input(type="checkbox", name="selected" value="#{request.id}")
+            td= request.email
+            td= formatter.formatDate(request.createdDate)
+
+

@@ -17,6 +17,6 @@ public class AdminControllerTest {
 
     @Test
     public void testMainPage() throws Exception {
-        assertEquals("admin/index", controller.mainPage());
+        assertEquals("admin/index", controller.mainPage(null));
     }
 }

@@ -44,10 +44,10 @@ public class InvitationController extends WebApplicationObjectSupport {
         }
         else {
 
-            InviteRequest request = inviteService.newInviteRequest();
+            InviteRequest request = inviteService.newObject();
             request.setEmail(inviteRequestForm.getEmail());
 
-            inviteService.createRequest(request);
+            inviteService.create(request);
 
             return "redirect:/invite/success";
         }

@@ -1,0 +1,16 @@
+extends layout
+
+block admin
+  h2 Site Stats
+  table.table.table-striped
+    thead
+      tr
+        th Name
+        th Value
+    tbody
+      each stat in stats.entrySet()
+        tr
+          td= stat.key
+          td= stat.value
+
+

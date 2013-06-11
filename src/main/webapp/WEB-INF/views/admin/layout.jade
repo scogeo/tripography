@@ -1,0 +1,13 @@
+extends ../site
+
+block content
+  .row
+    .span2
+      .well(style="padding: 8px 0;")
+        ul.nav.nav-list
+          li.nav-header Admin
+          +nav_item("/olympus/stats", "Stats")
+          +nav_item("/olympus/invites", "Invites")
+          +nav_item("/olympus/system", "System")
+    .span10
+      block admin
