@@ -32,10 +32,14 @@ public class InviteRepositoryServiceTest {
 
     private InviteRepository mockedRepository;
 
+    private InviteCodeRepository mockedInviteCodeRepository;
+
     @Before
     public void initService() {
         mockedRepository = mock(InviteRepository.class);
-        service = new InviteRepositoryService(mockedRepository);
+        mockedInviteCodeRepository = mock(InviteCodeRepository.class);
+
+        service = new InviteRepositoryService(mockedRepository, mockedInviteCodeRepository);
     }
 
     @After
