@@ -1,10 +1,12 @@
 package com.tripography.web.controller;
 
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
+@Ignore
 public class AdminControllerTest {
 
     // Treat as singleton for all tests to match Spring behavior.
