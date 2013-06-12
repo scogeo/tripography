@@ -1,0 +1,29 @@
+extends layout
+
+block admin
+  h2 Invite Requests
+  a(href="/olympus/inviteCodes/create") Create Code
+  +form("/olympus/invites/update")#invitesForm
+    .btn-group
+      button.btn Action
+      button.btn.dropdown-toggle(data-toggle="dropdown")
+        span.caret
+      ul.dropdown-menu
+        li
+          a(href="#", onclick="$('#invitesForm').submit()") Invite
+        li.divider
+        li
+          button(href="#").button Delete
+    table.table.table-striped
+      thead
+        tr
+          th Select
+          th Id
+          th Count
+      tbody
+        each inviteCode in inviteCodes
+          tr
+            td
+              input(type="checkbox", name="selected" value="#{inviteCode.id}")
+            td= inviteCode.id
+            td= inviteCode.count

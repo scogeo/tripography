@@ -5,9 +5,14 @@ block content
     .span2
       .well(style="padding: 8px 0;")
         ul.nav.nav-list
-          li.nav-header Admin
+          li.nav-header System
           +nav_item("/olympus/stats", "Stats")
-          +nav_item("/olympus/invites", "Invites")
           +nav_item("/olympus/system", "System")
+          li.nav-header Accounts
+          +nav_item("/olympus/inviteCodes", "Invite Codes")
+          +nav_item("/olympus/invites", "Invite Requests")
+          li.nav-header Vehicles
+          +nav_item("/olympus/dailyReadings", "Daily Readings")
+
     .span10
       block admin

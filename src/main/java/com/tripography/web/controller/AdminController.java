@@ -1,9 +1,14 @@
 package com.tripography.web.controller;
 
+import com.rumbleware.invites.InviteCode;
 import com.rumbleware.invites.InviteRequest;
 import com.rumbleware.invites.InviteService;
+import com.rumbleware.web.forms.FormErrors;
 import com.tripography.accounts.AccountService;
+import com.tripography.telemetry.DailyVehicleReading;
+import com.tripography.telemetry.DailyVehicleReadingRepository;
 import com.tripography.vehicles.VehicleService;
+import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,11 +16,17 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.context.support.WebApplicationObjectSupport;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
@@ -27,7 +38,7 @@ import java.util.Map;
 @Controller
 @RequestMapping("/olympus/")
 @Secured("ROLE_ADMIN")
-public class AdminController {
+public class AdminController extends WebApplicationObjectSupport {
 
     private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
 
@@ -39,6 +50,10 @@ public class AdminController {
 
     @Autowired
     private InviteService inviteService;
+
+    @Autowired
+    private DailyVehicleReadingRepository dailyVehicleReadingRepository;
+
 
     @RequestMapping(method = RequestMethod.GET)
     public String mainPage(Principal user) {
@@ -73,6 +88,50 @@ public class AdminController {
 
     }
 
+    @RequestMapping(value = "inviteCodes", method = RequestMethod.GET)
+    public String getInviteCodes(Principal user, Model model) {
+
+        List<InviteCode> inviteCodes = inviteService.findAllInviteCodes();
+
+        model.addAttribute("inviteCodes", inviteCodes);
+        return "admin/inviteCodes";
+
+    }
+
+    @RequestMapping(value = "inviteCodes/create", method = RequestMethod.GET)
+    public String getInviteCodeCreate(Principal user, Model model) {
+
+        List<InviteCode> inviteCodes = inviteService.findAllInviteCodes();
+
+        model.addAttribute("inviteCodes", inviteCodes);
+        return "admin/inviteCodeCreate";
+
+    }
+
+    @RequestMapping(value = "inviteCodes/create", method = RequestMethod.POST)
+    public String postInviteCodeCreate(Principal user, @ModelAttribute("inviteCode") @Valid InviteCodeForm form,
+                                       BindingResult bindingResult, Model model, RedirectAttributes redirectAttrs) {
+
+        logger.info("invite create called" + form);
+
+        model.addAttribute("form", form);
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("form", form);
+            model.addAttribute("formErrors", new FormErrors(bindingResult, getWebApplicationContext()));
+            return "admin/inviteCodeCreate";
+        }
+
+        InviteCode inviteCode = new InviteCode(form.getInviteCode());
+        inviteCode.setCount(form.getCount());
+
+        inviteService.addInviteCode(inviteCode);
+
+        redirectAttrs.addFlashAttribute("message", "Invite code created");
+        return "redirect:/olympus/inviteCodes/create";
+
+    }
+
     @RequestMapping(value = "invites/update", method = RequestMethod.POST)
     public String updateInvites(Principal user, @ModelAttribute("invites") InviteForm inviteForm, HttpServletRequest request, Model model) {
 
@@ -85,6 +144,47 @@ public class AdminController {
 
     }
 
+    @RequestMapping(value = "dailyReadings", method = RequestMethod.GET)
+    public String getDailyReadings(Principal user, Model model) {
+        List<DailyVehicleReading> readings = dailyVehicleReadingRepository.findAll();
+
+        model.addAttribute("readings", readings);
+
+        return "admin/dailyReadings";
+    }
+
+    public static class InviteCodeForm {
+
+        @NotEmpty
+        private String inviteCode;
+
+        @Min(1) @NotNull
+        private Integer count;
+
+        public void setInviteCode(String inviteCode) {
+            this.inviteCode = inviteCode;
+        }
+
+        public void setCount(Integer count) {
+            this.count = count;
+        }
+
+        public String getInviteCode() {
+            return inviteCode;
+        }
+
+        public Integer getCount() {
+            return count;
+        }
+
+        @Override
+        public String toString() {
+            return "InviteCodeForm{" +
+                    "inviteCode='" + inviteCode + '\'' +
+                    ", count=" + count +
+                    '}';
+        }
+    }
     public static class InviteForm {
 
         private List<String> selected;

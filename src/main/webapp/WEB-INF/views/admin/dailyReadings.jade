@@ -1,0 +1,43 @@
+extends layout
+
+block admin
+  h2 Daily Vehicle Readings
+  +form("/olympus/dailyReadings/update")#invitesForm
+    .btn-group
+      button.btn Action
+      button.btn.dropdown-toggle(data-toggle="dropdown")
+        span.caret
+      ul.dropdown-menu
+        li
+          a(href="#") Read Now
+        li.divider
+        li
+          a(href="#") Disable
+    table.table.table-striped
+      thead
+        tr
+          th Select
+          th Id
+          th Enabled
+          th Status
+          th Last Reading
+          th Next Scheduled
+          th For Date
+          th Message
+      tbody
+        each reading in readings
+          tr
+            td
+              input(type="checkbox", name="selected" value="#{reading.id}")
+            td= reading.id
+            td= reading.enabled
+            td
+              = reading.status
+              if reading.errorCount > 0
+                |  (#{reading.errorCount})
+            td #{reading.lastReading.odometer} (#{formatter.formatDate(reading.lastReading.timestamp)})
+            td= formatter.formatDate(reading.nextReadingDate)
+            td= formatter.formatDate(reading.forDate)
+            td= reading.message
+
+
