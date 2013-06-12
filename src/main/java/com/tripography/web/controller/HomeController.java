@@ -57,6 +57,10 @@ public class HomeController {
         Account account = accountService.findById(userId);
         model.addAttribute("account", account);
 
+        if (account.getRoles().contains("admin")) {
+            return "redirect:/olympus/";
+        }
+
         TeslaVehicleProvider vehicleProvider = providerService.findByAccountId(account.getObjectId());
 
         if (vehicleProvider == null) {
