@@ -61,6 +61,7 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
 
     private final List<DailyUpdateEventListener> dailyEventListeners = new ArrayList<>();
 
+    private final Random random = new Random();
 
     private ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(10, new ThreadFactory() {
         public Thread newThread(Runnable r) {
@@ -176,7 +177,7 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
         reading.setEnabled(false);
         reading.setStatus(DailyVehicleReading.Status.INTERNAL_ERROR);
         updateReadingTimes(reading);
-        reading.setMessage(message);
+        reading.setError(message);
         logger.error("Internal error processing daily stats for vehicle " + reading.getId() + ": " + message);
         dailyVehicleReadingRepository.save(reading);
     }
@@ -184,7 +185,7 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
     private void updateWithReadingError(DailyVehicleReading reading, String message) {
         reading.setStatus(DailyVehicleReading.Status.READ_ERROR);
         updateReadingTimes(reading);
-        reading.setMessage(message);
+        reading.setError(message);
         logger.error("error processing daily stats for vehicle " + reading.getId() + ": " + message);
         dailyVehicleReadingRepository.save(reading);
     }
@@ -200,7 +201,7 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
 
         // This shouldn't be needed, but leave for now.
         calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.MINUTE, random.nextInt(60)); // Randomize the reading time within the hour.
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
 

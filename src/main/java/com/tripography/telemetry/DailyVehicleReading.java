@@ -22,6 +22,7 @@ public class DailyVehicleReading extends BaseDocument {
     public static final String STATUS = "s";
     public static final String ODOMETER_READING = "o";
     public static final String MESSAGE = "m";
+    public static final String ERROR_COUNT = "ec";
 
 
     public enum Status {
@@ -81,6 +82,10 @@ public class DailyVehicleReading extends BaseDocument {
     @Field("t")
     private String timeZoneId;
 
+    @Field(ERROR_COUNT)
+    private int errorCount = 0;
+
+
     @PersistenceConstructor
     public DailyVehicleReading(ObjectId id) {
         super(id);
@@ -107,7 +112,18 @@ public class DailyVehicleReading extends BaseDocument {
 
     public void setStatus(Status status) {
         this.status = status;
+        if (status == Status.OK) {
+            errorCount = 0;
+        }
         this.statusValue = status.getValue();
+    }
+
+    public int getErrorCount() {
+        return errorCount;
+    }
+
+    public void setErrorCount(int errorCount) {
+        this.errorCount = errorCount;
     }
 
     public String getMessage() {
@@ -115,6 +131,11 @@ public class DailyVehicleReading extends BaseDocument {
     }
 
     public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public void setError(String message) {
+        errorCount++;
         this.message = message;
     }
 
@@ -165,8 +186,12 @@ public class DailyVehicleReading extends BaseDocument {
                 ", nextReadingDate=" + nextReadingDate +
                 ", forDate=" + forDate +
                 ", lastReading=" + lastReading +
-                ", status='" + status + '\'' +
-                ", timezone='" + timeZoneId + '\'' +
+                ", statusValue=" + statusValue +
+                ", status=" + status +
+                ", message='" + message + '\'' +
+                ", timeZone=" + timeZone +
+                ", timeZoneId='" + timeZoneId + '\'' +
+                ", errorCount=" + errorCount +
                 '}';
     }
 }
