@@ -4,6 +4,8 @@ import com.rumbleware.accounts.UserAccount;
 import com.rumbleware.accounts.UserAccountService;
 import com.rumbleware.accounts.Username;
 import com.rumbleware.dao.UniqueKeyException;
+import com.rumbleware.invites.InviteCode;
+import com.rumbleware.invites.InviteService;
 import com.rumbleware.web.forms.FormErrors;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotEmpty;
@@ -45,6 +47,9 @@ public class SignupController extends WebApplicationObjectSupport {
     @Autowired
     private UserAccountService accountService;
 
+    @Autowired
+    private InviteService inviteService;
+
     private Set<String> inviteCodes = new HashSet<String>();
 
     public SignupController() {
@@ -82,8 +87,14 @@ public class SignupController extends WebApplicationObjectSupport {
             return "redirect:/";
         }
 
-        if (accountForm.invite != null && !inviteCodes.contains(accountForm.invite.toLowerCase())) {
-            bindingResult.addError(new FieldError("account", "invite", "Unknown invite code."));
+        InviteCode inviteCode = null;
+
+        if (accountForm.invite != null) {
+            inviteCode = inviteService.findInviteCode(accountForm.invite);
+            if (inviteCode == null || inviteCode.getCount() <= 0) {
+                bindingResult.addError(new FieldError("account", "invite", "Unknown invite code."));
+            }
+
         }
 
         model.addAttribute("form", accountForm);
@@ -107,6 +118,11 @@ public class SignupController extends WebApplicationObjectSupport {
             logger.info("Username is " + account.getUsername());
             try {
                 accountService.update(account);
+                // Decrement the invite code
+                if (inviteCode != null) {
+                    inviteCode.setCount(inviteCode.getCount() - 1);
+                    inviteService.updateInviteCode(inviteCode);
+                }
                 logger.info("Account successfully saved");
 
             }
