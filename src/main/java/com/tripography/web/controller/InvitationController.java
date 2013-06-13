@@ -5,7 +5,10 @@ import com.rumbleware.invites.InviteService;
 import com.rumbleware.web.forms.FormErrors;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotEmpty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -16,13 +19,12 @@ import org.springframework.web.context.support.WebApplicationObjectSupport;
 
 import javax.validation.Valid;
 import java.security.Principal;
-import java.util.logging.Logger;
 
 @Controller
 @RequestMapping(AppPaths.INVITE)
 public class InvitationController extends WebApplicationObjectSupport {
 
-    private static final Logger logger = Logger.getLogger(InvitationController.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(InvitationController.class);
 
     @Autowired
     InviteService inviteService;
@@ -36,7 +38,7 @@ public class InvitationController extends WebApplicationObjectSupport {
         }
         if (bindingResult.hasErrors()) {
             // Return the form again
-            logger.info("woops we got some erros " + bindingResult.getAllErrors());
+            //logger.info("woops we got some erros " + bindingResult.getAllErrors());
             model.addAttribute("form", inviteRequestForm);
             model.addAttribute("formErrors", new FormErrors(bindingResult, getWebApplicationContext()));
 
@@ -47,7 +49,13 @@ public class InvitationController extends WebApplicationObjectSupport {
             InviteRequest request = inviteService.newObject();
             request.setEmail(inviteRequestForm.getEmail());
 
-            inviteService.create(request);
+            try {
+                inviteService.create(request);
+            }
+            catch (DuplicateKeyException e) {
+                // ignore for now, already recorded it.
+                logger.debug("got a dup", e);
+            }
 
             return "redirect:/invite/success";
         }
