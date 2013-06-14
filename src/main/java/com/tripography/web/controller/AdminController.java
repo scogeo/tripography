@@ -8,6 +8,7 @@ import com.tripography.accounts.AccountService;
 import com.tripography.telemetry.DailyVehicleReading;
 import com.tripography.telemetry.DailyVehicleReadingRepository;
 import com.tripography.telemetry.VehicleTelemetryService;
+import com.tripography.vehicles.Vehicle;
 import com.tripography.vehicles.VehicleService;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.context.support.WebApplicationObjectSupport;
@@ -182,6 +184,15 @@ public class AdminController extends WebApplicationObjectSupport {
         return "redirect:/olympus/telemetry";
     }
 
+    @RequestMapping(value = "vehicles/{vehicleId}", method = RequestMethod.GET)
+    public String getTelemetry(@PathVariable("vehicleId") String vehicleId, Principal user, Model model) {
+
+        Vehicle vehicle = vehicleService.findById(vehicleId);
+
+        model.addAttribute("vehicle", vehicle);
+
+        return "admin/vehicle";
+    }
 
     public static class InviteCodeForm {
 

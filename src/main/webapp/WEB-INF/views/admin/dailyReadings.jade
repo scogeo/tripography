@@ -23,21 +23,24 @@ block admin
           th Last Reading
           th Next Scheduled
           th For Date
+          th TimeZone
           th Message
       tbody
         each reading in readings
           tr
             td
               input(type="checkbox", name="selected" value="#{reading.id}")
-            td= reading.id
+            td
+              a(href="/olympus/vehicles/#{reading.id}")= reading.id
             td= reading.enabled
             td
               = reading.status
               if reading.errorCount > 0
                 |  (#{reading.errorCount})
-            td #{reading.lastReading.odometer} (#{formatter.formatDate(reading.lastReading.timestamp)})
-            td= formatter.formatDate(reading.nextReadingDate)
-            td= formatter.formatDate(reading.forDate)
+            td #{reading.lastReading.odometer} (#{formatter.formatDateTime(reading.lastReading.timestamp, reading.TimeZone)})
+            td= formatter.formatDateTime(reading.nextReadingDate, reading.timeZone)
+            td= formatter.formatDateTime(reading.forDate, reading.timeZone)
+            td= reading.timeZone.ID
             td= reading.message
 
 
