@@ -1,0 +1,11 @@
+extends layout
+
+block admin
+  h2 Telemetry Service
+  p
+    b Enabled:&nbsp;
+    = running
+    +form("/olympus/telemetry/update").form-horizontal
+      .form-actions
+        button(type="submit", name="action", value="enable").btn.btn-success Enable
+        button(type="submit", name="action", value="disable").btn.btn-danger Disable

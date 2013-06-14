@@ -7,6 +7,7 @@ import com.rumbleware.web.forms.FormErrors;
 import com.tripography.accounts.AccountService;
 import com.tripography.telemetry.DailyVehicleReading;
 import com.tripography.telemetry.DailyVehicleReadingRepository;
+import com.tripography.telemetry.VehicleTelemetryService;
 import com.tripography.vehicles.VehicleService;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;
@@ -54,6 +55,8 @@ public class AdminController extends WebApplicationObjectSupport {
     @Autowired
     private DailyVehicleReadingRepository dailyVehicleReadingRepository;
 
+    @Autowired
+    private VehicleTelemetryService telemetryService;
 
     @RequestMapping(method = RequestMethod.GET)
     public String mainPage(Principal user) {
@@ -152,6 +155,33 @@ public class AdminController extends WebApplicationObjectSupport {
 
         return "admin/dailyReadings";
     }
+
+
+    @RequestMapping(value = "telemetry", method = RequestMethod.GET)
+    public String getTelemetry(Principal user, Model model) {
+
+        model.addAttribute("running", telemetryService.isRunning());
+
+        return "admin/telemetry";
+    }
+
+    @RequestMapping(value = "telemetry/update", method = RequestMethod.POST)
+    public String updateTelemetryStatus(Principal user, @ModelAttribute("action") String action, Model model) {
+
+        logger.info("got a call, woots " + action);
+
+        if ("enable".equals(action)) {
+            logger.info("Starting telemetry service");
+            telemetryService.startService();
+        }
+        else if ("disable".equals(action)) {
+            logger.info("Stopping telemetry service");
+            telemetryService.stopService();
+        }
+
+        return "redirect:/olympus/telemetry";
+    }
+
 
     public static class InviteCodeForm {
 
