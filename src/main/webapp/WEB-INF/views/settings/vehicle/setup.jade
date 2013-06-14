@@ -5,11 +5,11 @@ block settings
     h4 Welcome to tripography.
     p
       | You have no vehicles registered with tripography.  To register your vehicle(s) with tripography, please enter
-      |  your Tesla Motors username and password in the form below.
+      |  your Tesla Motors email address and password in the form below.
     hr
     +form("/settings/vehicles/register").form-horizontal.form6
       fieldset
-        +grouped_input(label="Username", id="username", type="text", name="username").input-large
+        +grouped_input(label="Email", id="username", type="text", name="username").input-large
         +grouped_input(label="Password", id="password", type="password", name="password").input-large
       .form-actions
         p By registering your vehicle you agree to the terms below.

@@ -29,6 +29,7 @@ public class TeslaPortalTest {
     @Before
     public void login() {
         credentials = new UsernamePasswordCredentials("george.scott@gmail.com", "kyrdn3yt3sla");
+        //credentials = new UsernamePasswordCredentials("PureAmps", "kyrdn3yt3sla");
 
         portal = new TeslaPortal();
 
