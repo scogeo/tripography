@@ -177,7 +177,7 @@ public class AdminController extends WebApplicationObjectSupport {
             telemetryService.startService();
         }
         else if ("disable".equals(action)) {
-            logger.info("Stopping telemetry service");
+            logger.info("Stopping telemetry service...");
             telemetryService.stopService();
         }
 
