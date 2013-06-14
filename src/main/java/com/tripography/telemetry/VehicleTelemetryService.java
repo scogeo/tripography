@@ -11,4 +11,20 @@ public interface VehicleTelemetryService {
 
     void stopTrackingVehicle(Vehicle Vehicle);
 
+    /**
+     *
+     * @return true if the service is running.
+     */
+    boolean isRunning();
+
+    /**
+     * Starts the service if it has been previously stopped.
+     */
+    void startService();
+
+    /**
+     * Stops the service.
+     */
+    void stopService();
+
 }

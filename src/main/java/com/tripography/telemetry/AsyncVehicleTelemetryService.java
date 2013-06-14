@@ -63,6 +63,10 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
 
     private final Random random = new Random();
 
+    private boolean isRunning = false;
+
+    private ScheduledFuture<?> dailyPollerJob;
+
     private ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(10, new ThreadFactory() {
         public Thread newThread(Runnable r) {
             Thread t = new Thread(r, "WebScheduledExecutorService");
@@ -91,8 +95,33 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
         dailyEventListeners.add(new DailyDistanceUpdater(mongo));
         dailyEventListeners.add(new DailyHistogramUpdater(mongo));
 
-        // Every minute poll for tasks.
-        scheduledExecutorService.scheduleAtFixedRate(new DailyTrackingPoller(), 0, 1, TimeUnit.MINUTES);
+        startService();
+
+    }
+
+    @Override
+    public boolean isRunning() {
+        return isRunning;
+    }
+
+    @Override
+    public synchronized void startService() {
+        if (isRunning) {
+            // do nothing
+            return;
+        }
+        dailyPollerJob = scheduledExecutorService.scheduleAtFixedRate(new DailyTrackingPoller(), 0, 1, TimeUnit.MINUTES);
+        isRunning = true;
+    }
+
+    @Override
+    public synchronized void stopService() {
+        if (!isRunning) {
+            // do nothing
+            return;
+        }
+        dailyPollerJob.cancel(false);
+        isRunning = false;
     }
 
     @PreDestroy
@@ -205,7 +234,7 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
 
-        reading.setNextReadingDate(calendar.getTime());
+        reading.updateTargetAndNextReadingDate(calendar.getTime());
 
     }
 
@@ -233,7 +262,9 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
                 new Update()
                         .set(DailyVehicleReading.STATUS, newReading.getStatus().getValue())
                         .set(DailyVehicleReading.FOR_DATE, newReading.getForDate())
+                        .set(DailyVehicleReading.ERROR_COUNT, 0)
                         .set(DailyVehicleReading.NEXT_READING_DATE, newReading.getNextReadingDate())
+                        .set(DailyVehicleReading.TARGET_READING_DATE, newReading.getTargetReadingDate())
                         .set(DailyVehicleReading.ODOMETER_READING, odometer)
                         .unset(DailyVehicleReading.MESSAGE)
                 , DailyVehicleReading.class);
@@ -328,12 +359,15 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
 
     class DailyTrackingPoller implements Runnable {
 
+        // How old a reading should be before we mark it as an error, and reschedule.
+        private final long MAX_READING_AGE = 4 * 60 * 60 * 1000;
+
         @Override
         public void run() {
             try {
                 Date now = new Date();
 
-                logger.debug("Polling for vehicles to update");
+                logger.info("Polling for vehicles to update");
 
                 List<DailyVehicleReading> readings = dailyVehicleReadingRepository.findByNextReadingDateLessThan(now);
 
@@ -342,7 +376,15 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
                 }
 
                 for (DailyVehicleReading reading : readings) {
-                    updateVehicle(reading);
+                    Date targetReadingDate = reading.getTargetReadingDate();
+
+                    if (targetReadingDate != null && now.getTime() - targetReadingDate.getTime() > MAX_READING_AGE) {
+                        logger.info("Reading time has expired for reading, will mark as error " + reading);
+                        updateWithReadingError(reading, "Nightly Reading Window Expired");
+                    }
+                    else {
+                        updateVehicle(reading);
+                    }
                 }
             }
             catch (Throwable t) {

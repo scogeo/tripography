@@ -18,6 +18,7 @@ import java.util.TimeZone;
 public class DailyVehicleReading extends BaseDocument {
 
     public static final String NEXT_READING_DATE = "n";
+    public static final String TARGET_READING_DATE = "td";
     public static final String FOR_DATE = "d";
     public static final String STATUS = "s";
     public static final String ODOMETER_READING = "o";
@@ -56,8 +57,13 @@ public class DailyVehicleReading extends BaseDocument {
     @Field("e")
     private Boolean enabled = true;
 
+    // This is the next reading date including retries.
     @Field(NEXT_READING_DATE)
     private Date nextReadingDate;
+
+    // This is the date that we are attempting to read the data on.
+    @Field(TARGET_READING_DATE)
+    private Date targetReadingDate;
 
     // the date we are reading for, which is set to midnight of the day the gets the "credit" for the reading.
     // The actual reading takes place 24 hours +/- 15 mins
@@ -137,6 +143,10 @@ public class DailyVehicleReading extends BaseDocument {
     public void setError(String message) {
         errorCount++;
         this.message = message;
+        // disable if this error has occurred more than 7 times.
+        if (errorCount > 7) {
+            enabled = false;
+        }
     }
 
     public Date getForDate() {
@@ -153,6 +163,19 @@ public class DailyVehicleReading extends BaseDocument {
 
     public void setNextReadingDate(Date nextReadingDate) {
         this.nextReadingDate = nextReadingDate;
+    }
+
+    public Date getTargetReadingDate() {
+        return targetReadingDate;
+    }
+
+    public void setTargetReadingDate(Date targetReadingDate) {
+        this.targetReadingDate = targetReadingDate;
+    }
+
+    public void updateTargetAndNextReadingDate(Date date) {
+        this.targetReadingDate = date;
+        this.nextReadingDate = date;
     }
 
     public OdometerReading getLastReading() {
