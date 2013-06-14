@@ -78,6 +78,8 @@ public class TeslaPortalTest {
          * drive state 4.5:
          * {"shift_state":null,"speed":null,"latitude":37.391157,"longitude":-122.016988,"heading":198,"gps_as_of":1370023504}
          *
+         * if disabled:
+         * {"result":false,"reason":"mobile_access_disabled"}
          */
         System.out.println("Drive state is " + driveState);
     }
@@ -113,6 +115,9 @@ public class TeslaPortalTest {
          *
          * mobile enabled 4.5:
          * {"reason":"","result":true}
+         *
+         * // Mobile disabled in 4.5:
+         * {"reason":"customer_setting","result":false}
          */
         System.out.println("Response is " + response);
     }

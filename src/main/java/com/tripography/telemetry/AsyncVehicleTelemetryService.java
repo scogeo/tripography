@@ -3,6 +3,7 @@ package com.tripography.telemetry;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.rumbleware.tesla.TeslaVehicle;
+import com.rumbleware.tesla.api.CommandResponse;
 import com.rumbleware.tesla.api.TeslaPortal;
 import com.rumbleware.tesla.api.VehicleDescriptor;
 import com.tripography.providers.VehicleProviderService;
@@ -299,6 +300,12 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
                 return;
             }
 
+            CommandResponse mobileEnabledResponse = teslaPortal.mobileEnabled(vehicleProvider.getCredentials(), vehicle.getDetails().getPortalId());
+
+            if (!mobileEnabledResponse.getResult()) {
+                updateWithReadingError(reading, "mobile disabled: " + mobileEnabledResponse.getReason());
+                return;
+            }
 
             // TODO, should be able to skip this step, no need to get descriptor, vehicle id should be sufficient.
             VehicleDescriptor descriptor = teslaPortal.vehicle(vehicleProvider.getCredentials(), vehicle.getDetails().getPortalId());
