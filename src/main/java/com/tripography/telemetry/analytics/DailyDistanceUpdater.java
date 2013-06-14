@@ -62,13 +62,13 @@ public class DailyDistanceUpdater implements DailyDistance, DailyUpdateEventList
         Vehicle vehicle = event.getVehicle();
         double dailyMileage = event.dailyDistance(DailyUpdateEvent.Units.MILES);
 
-        logger.info("tracked vehicle " + vehicle.getObjectId());
+        logger.debug("tracked vehicle " + vehicle.getObjectId());
 
         int month = currentDay.get(Calendar.MONTH) + 1;
 
         String monthAndDay = month + "." + currentDay.get(Calendar.DAY_OF_MONTH);
 
-        logger.info("month and day " + monthAndDay);
+        logger.debug("month and day " + monthAndDay);
 
         int year = currentDay.get(Calendar.YEAR);
 

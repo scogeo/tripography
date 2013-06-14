@@ -166,7 +166,7 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
         dailyMileage = (double)Math.round(dailyMileage * 10) / 10;
 
         //logger.info("The current odomter is " + odometer + " and the previous odometer was " + vehicle.getLastReading().getOdometer());
-        logger.info("Daily mileage is " + dailyMileage);
+        logger.debug("Daily mileage is " + dailyMileage);
 
         if (dailyMileage < 0.0) {
             logger.error("woops read negative mileage");
@@ -314,11 +314,11 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
                         logger.error("error while reading odometer, null result" + reading);
                     }
 
-                    logger.info("Read an odometer for vehicle " + result);
+                    logger.debug("Read an odometer for vehicle " + result);
 
                     try {
                         if (!updateReadingSuccess(reading, result)) {
-                            logger.info("Update already appears to have occurred for " + reading);
+                            logger.debug("Update already appears to have occurred for " + reading);
                             return;
                         }
                     }
@@ -328,7 +328,7 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
                     }
 
                     try {
-                        logger.info("Updating vehicle stats for reading " + reading + " odometer " + result);
+                        logger.debug("Updating vehicle stats for reading " + reading + " odometer " + result);
                         // Update the vehicle document
                         updateVehicleDocument(reading, vehicle, result);
 
@@ -367,19 +367,19 @@ public class AsyncVehicleTelemetryService implements VehicleTelemetryService {
             try {
                 Date now = new Date();
 
-                logger.info("Polling for vehicles to update");
+                logger.debug("Polling for vehicles to update");
 
                 List<DailyVehicleReading> readings = dailyVehicleReadingRepository.findByNextReadingDateLessThan(now);
 
                 if (readings.size() > 0) {
-                    logger.info("Found " + readings.size() + " during daily update poll");
+                    logger.debug("Found " + readings.size() + " during daily update poll");
                 }
 
                 for (DailyVehicleReading reading : readings) {
                     Date targetReadingDate = reading.getTargetReadingDate();
 
                     if (targetReadingDate != null && now.getTime() - targetReadingDate.getTime() > MAX_READING_AGE) {
-                        logger.info("Reading time has expired for reading, will mark as error " + reading);
+                        logger.warn("Reading time has expired for reading, will mark as error " + reading);
                         updateWithReadingError(reading, "Nightly Reading Window Expired");
                     }
                     else {
