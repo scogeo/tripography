@@ -14,7 +14,7 @@ import java.util.List;
 @Repository
 public interface DailyVehicleReadingRepository extends MongoRepository<DailyVehicleReading, ObjectId> {
 
-    @Query("{ 'n' : { '$lt' : ?0 }}")
+    @Query("{ 'n' : { '$lt' : ?0 }, 'e' : true }")
     public List<DailyVehicleReading> findByNextReadingDateLessThan(Date date);
 
 }
