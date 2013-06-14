@@ -9,7 +9,8 @@ block content
     .span12
       .well
         .profile-sidebar
-          h4.username= account.username
+          h4
+            a(href="/#{account.username}").username= account.username
 
   .row
     .span12

@@ -5,6 +5,8 @@ import com.tripography.accounts.Account;
 import com.tripography.accounts.AccountService;
 import com.tripography.providers.VehicleProviderService;
 import com.tripography.providers.tesla.TeslaVehicleProvider;
+import com.tripography.vehicles.Vehicle;
+import com.tripography.vehicles.VehicleService;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import javax.annotation.Nullable;
 import javax.validation.constraints.Size;
 import java.security.Principal;
+import java.util.List;
 
 /**
  * @author gscott
@@ -32,6 +35,9 @@ public class HomeController {
 
     @Autowired
     AccountService accountService;
+
+    @Autowired
+    VehicleService vehicleService;
 
     @Autowired
     VehicleProviderService providerService;
@@ -67,6 +73,9 @@ public class HomeController {
             return "redirect:/settings/vehicles";
         }
         else {
+            List<Vehicle> vehicles = vehicleService.getVehiclesByAccount(account.getId());
+
+            model.addAttribute("vehicles", vehicles);
             return "home";
         }
     }
