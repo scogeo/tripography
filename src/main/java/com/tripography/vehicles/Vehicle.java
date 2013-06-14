@@ -160,7 +160,6 @@ public class Vehicle extends DatedDocument {
         this.timeZoneId = tz.getID();
     }
 
-
     public void setRegion(OSMAddress address) {
         setOSMRegionField("country_code", address.getCountryCode());
         setOSMRegionField("state", address.getState());
@@ -168,7 +167,10 @@ public class Vehicle extends DatedDocument {
         setOSMRegionField("city", address.getCity());
         setOSMRegionField("town", address.getTown());
         setOSMRegionField("village", address.getVillage());
-        setOSMRegionField("postcode", address.getPostcode());
+    }
+
+    public Map<String, String> getRegion() {
+        return osmRegion;
     }
 
     private void setOSMRegionField(String name, String value) {
