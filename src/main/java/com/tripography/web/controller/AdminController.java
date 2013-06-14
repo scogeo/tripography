@@ -4,6 +4,7 @@ import com.rumbleware.invites.InviteCode;
 import com.rumbleware.invites.InviteRequest;
 import com.rumbleware.invites.InviteService;
 import com.rumbleware.web.forms.FormErrors;
+import com.tripography.accounts.Account;
 import com.tripography.accounts.AccountService;
 import com.tripography.telemetry.DailyVehicleReading;
 import com.tripography.telemetry.DailyVehicleReadingRepository;
@@ -184,12 +185,46 @@ public class AdminController extends WebApplicationObjectSupport {
         return "redirect:/olympus/telemetry";
     }
 
+    @RequestMapping(value = "accounts", method = RequestMethod.GET)
+    public String getAccounts(Principal user, Model model) {
+
+        List<Account> accounts = accountService.findAll();
+
+        model.addAttribute("accounts", accounts);
+
+        return "admin/accounts";
+    }
+
+    @RequestMapping(value = "accounts/{accountId}", method = RequestMethod.GET)
+    public String getAccounts(@PathVariable("accountId") String accountId, Principal user, Model model) {
+
+        Account account = accountService.findById(accountId);
+
+        // Don't set the "account" attribute as we use that for logged-in user in some cases, need to check this.
+        model.addAttribute("userAccount", account);
+
+        return "admin/account";
+    }
+
+
+    @RequestMapping(value = "vehicles", method = RequestMethod.GET)
+    public String getVehicles(Principal user, Model model) {
+
+        List<Vehicle> vehicles = vehicleService.findAll();
+
+        model.addAttribute("vehicles", vehicles);
+
+        return "admin/vehicles";
+    }
+
     @RequestMapping(value = "vehicles/{vehicleId}", method = RequestMethod.GET)
-    public String getTelemetry(@PathVariable("vehicleId") String vehicleId, Principal user, Model model) {
+    public String getVehicle(@PathVariable("vehicleId") String vehicleId, Principal user, Model model) {
 
         Vehicle vehicle = vehicleService.findById(vehicleId);
 
         model.addAttribute("vehicle", vehicle);
+
+        model.addAttribute("owner", accountService.findById(vehicle.getAccountId()));
 
         return "admin/vehicle";
     }

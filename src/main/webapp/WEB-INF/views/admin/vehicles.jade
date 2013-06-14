@@ -1,0 +1,25 @@
+extends layout
+
+block admin
+  h2 Vehicles (#{vehicles.size()})
+  table.table.table-striped
+    thead
+      tr
+        th Id
+        th VIN
+        th Account
+        th Description
+        th TimeZone
+    tbody
+      each vehicle in vehicles
+        tr
+          td
+            a(href="/olympus/vehicles/#{vehicle.id}")= formatter.formatObjectId(vehicle.Id)
+          td
+            a(href="/olympus/vehicles/#{vehicle.id}")= vehicle.VIN
+          td
+            a(href="/olympus/accounts/#{vehicle.accountId}")= formatter.formatObjectId(vehicle.accountId)
+          td= vehicle.makeAndModel
+          td= vehicle.timeZone.ID
+
+

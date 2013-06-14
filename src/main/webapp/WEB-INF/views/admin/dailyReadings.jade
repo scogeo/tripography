@@ -31,7 +31,7 @@ block admin
             td
               input(type="checkbox", name="selected" value="#{reading.id}")
             td
-              a(href="/olympus/vehicles/#{reading.id}")= reading.id
+              a(href="/olympus/vehicles/#{reading.id}")= formatter.formatObjectId(reading.id)
             td= reading.enabled
             td
               = reading.status

@@ -1,7 +1,7 @@
 extends layout
 
 block admin
-  h2 Invite Requests
+  h2 Invite Codes (#{inviteCodes.size()})
   a(href="/olympus/inviteCodes/create") Create Code
   +form("/olympus/invites/update")#invitesForm
     .btn-group

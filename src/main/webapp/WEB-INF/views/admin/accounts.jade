@@ -1,0 +1,22 @@
+extends layout
+
+block admin
+  h2 Accounts (#{accounts.size()})
+  table.table.table-striped
+    thead
+      tr
+        th Username
+        th Email
+        ht Profile
+        th Created Date
+    tbody
+      each account in accounts
+        tr
+          td
+            a(href="/olympus/accounts/#{account.id}")= account.username
+          td= account.email
+          td
+            a(href="/#{account.username}") /#{account.username}
+          td= formatter.formatDateTime(account.createdDate)
+
+

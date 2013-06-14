@@ -1,7 +1,47 @@
 extends layout
 
 block admin
-  h2 Vehicle (#{vehicle.id})
-  p
-    b VIN:
-    = vehicle.VIN
+  h2 Vehicle (#{vehicle.VIN})
+  table.table.table-striped
+    thead
+      tr
+        th Name
+        th Value
+    tbody
+      tr
+        td Id
+        td= vehicle.id
+      tr
+        td Owner
+        td
+          a(href="/olympus/accounts/#{owner.id}")= owner.username
+      tr
+        td VIN
+        td= vehicle.VIN
+      tr
+        td Make and Model
+        td= vehicle.makeAndModel
+      tr
+        td Last Odometer
+        td
+          if vehicle.odometer
+            | #{vehicle.odometer.odometer} (#{formatter.formatDateTime(vehicle.odometer.timestamp, vehicle.timeZone)})
+
+      tr
+        td TimeZone
+        td= vehicle.timeZone.ID
+      tr
+        td Region
+        //-td = vehicle.region.get("city")
+        td
+          each entry in vehicle.region.entrySet()
+            p
+              b= entry.key
+              | :&nbsp;
+              = entry.value
+      tr
+        td Aggregates
+        td
+          ul
+          each aggregate in vehicle.aggregateGroupIds
+            li= aggregate

@@ -1,0 +1,23 @@
+extends layout
+
+block admin
+  h2 Account (#{userAccount.username})
+  table.table.table-striped
+    thead
+      tr
+        th Name
+        th Value
+    tbody
+      tr
+        td Id
+        td= userAccount.id
+      tr
+        td Username
+        td= userAccount.username
+      tr
+        td Email
+        td= userAccount.email
+      tr
+        td Profile Page
+        td
+          a(href="/#{userAccount.username}") /#{userAccount.username}

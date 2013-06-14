@@ -1,7 +1,7 @@
 extends layout
 
 block admin
-  h2 Invite Requests
+  h2 Invite Requests (#{requests.size()})
   +form("/olympus/invites/update")#invitesForm
     .btn-group
       button.btn Action
