@@ -285,7 +285,8 @@ public class TeslaPortal {
                         throw new TeslaServerErrorException(response.toString());
                     }
                     else {
-                        logger.warn("Tela API return status code " + response.getStatus());
+                        logger.warn("Tesla API returned status code " + response.getStatus() +
+                                " for uri " + getUriTemplate(id) + " and user " + credentials.getUsername());
                     }
                 }
                 catch (Exception e) {

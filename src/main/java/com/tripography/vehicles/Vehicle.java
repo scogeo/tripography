@@ -122,8 +122,10 @@ public class Vehicle extends DatedDocument {
     public String getMakeAndModel() {
         StringBuilder builder = new StringBuilder();
         builder.append("Tesla Model S");
+        // TODO fix, need to key off VIN apparently.
+
         if (details.getOptions().contains("TR01")) {
-            builder.append(" Signature");
+            //builder.append(" Signature");
         }
         if (details.getOptions().contains("PF01")) {
             builder.append(" Performance");

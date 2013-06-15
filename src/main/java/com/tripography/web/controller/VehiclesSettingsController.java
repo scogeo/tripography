@@ -78,10 +78,10 @@ public class VehiclesSettingsController extends WebApplicationObjectSupport {
         model.addAttribute("provider", provider);
 
 
-        logger.info("Listing vehicles for "+ accountId);
+        //logger.info("Listing vehicles for "+ accountId);
         List<Vehicle> vehicles = vehicleService.getVehiclesByAccount(accountId);
 
-        logger.info("got vehicles " + vehicles);
+        //logger.info("got vehicles " + vehicles);
 
         model.addAttribute("vehicles", vehicles);
 
@@ -169,12 +169,12 @@ public class VehiclesSettingsController extends WebApplicationObjectSupport {
             model.addAttribute("form", credentialsForm);
             model.addAttribute("formErrors", new FormErrors(bindingResult, getWebApplicationContext()));
 
-            logger.info("form contains errors");
+            //logger.info("form contains errors");
 
             return "settings/vehicle/renew";
         }
 
-        logger.info("Called with a form " + credentialsForm);
+        //logger.info("Called with a form " + credentialsForm);
 
 
         try {
