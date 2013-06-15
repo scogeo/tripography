@@ -49,6 +49,9 @@ define("charts/daily-odometer", ['jquery', 'highcharts'], function($, Highcharts
             series: [
                 {
                     name: "Distance",
+                    marker: {
+                        enabled: false
+                    },
                     data: []
                 }]
         });
