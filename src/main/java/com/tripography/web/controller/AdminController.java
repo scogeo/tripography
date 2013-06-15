@@ -152,7 +152,7 @@ public class AdminController extends WebApplicationObjectSupport {
 
     @RequestMapping(value = "dailyReadings", method = RequestMethod.GET)
     public String getDailyReadings(Principal user, Model model) {
-        List<DailyVehicleReading> readings = dailyVehicleReadingRepository.findAll();
+        List<DailyVehicleReading> readings = dailyVehicleReadingRepository.findAll(new Sort(Sort.Direction.ASC, "n"));
 
         model.addAttribute("readings", readings);
 
