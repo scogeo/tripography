@@ -5,6 +5,7 @@ import com.rumbleware.accounts.UserAccountService;
 import com.rumbleware.accounts.Username;
 import com.rumbleware.dao.UniqueKeyException;
 import com.rumbleware.invites.InviteCode;
+import com.rumbleware.invites.InviteRequest;
 import com.rumbleware.invites.InviteService;
 import com.rumbleware.web.forms.FormErrors;
 import org.hibernate.validator.constraints.Email;
@@ -29,8 +30,6 @@ import javax.validation.ConstraintViolationException;
 import javax.validation.Valid;
 import javax.validation.constraints.Size;
 import java.security.Principal;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author gscott
@@ -50,14 +49,8 @@ public class SignupController extends WebApplicationObjectSupport {
     @Autowired
     private InviteService inviteService;
 
-    private Set<String> inviteCodes = new HashSet<String>();
-
     public SignupController() {
-        inviteCodes.add("tripit");
-        inviteCodes.add("rumble");
-        inviteCodes.add("teslive2013");
-        inviteCodes.add("teslaroadtrip");
-        inviteCodes.add("tmc2013");
+
     }
 
     @RequestMapping(method = {RequestMethod.GET })
@@ -83,6 +76,8 @@ public class SignupController extends WebApplicationObjectSupport {
 
         logger.info("keys are " + model.asMap().keySet());
 
+        logger.info("terms is " + accountForm.getTerms());
+
         if (user != null) {
             return "redirect:/";
         }
@@ -95,6 +90,10 @@ public class SignupController extends WebApplicationObjectSupport {
                 bindingResult.addError(new FieldError("account", "invite", "Unknown invite code."));
             }
 
+        }
+
+        if (!"agree".equals(accountForm.getTerms())) {
+            bindingResult.addError(new FieldError("account", "terms", "You must agree to the Terms of Use."));
         }
 
         model.addAttribute("form", accountForm);
@@ -119,9 +118,23 @@ public class SignupController extends WebApplicationObjectSupport {
             try {
                 accountService.update(account);
                 // Decrement the invite code
-                if (inviteCode != null) {
-                    inviteCode.setCount(inviteCode.getCount() - 1);
-                    inviteService.updateInviteCode(inviteCode);
+                try {
+                    if (inviteCode != null) {
+                        inviteCode.setCount(inviteCode.getCount() - 1);
+                        if (inviteCode.getCount() > 0) {
+                            inviteService.updateInviteCode(inviteCode);
+                        }
+                        else {
+                            inviteService.deleteInviteCode(inviteCode);
+                        }
+                        InviteRequest request = inviteService.findByEmail(account.getEmail());
+                        if (request != null) {
+                            inviteService.delete(request.getId());
+                        }
+                    }
+                }
+                catch(Exception e) {
+                    logger.error("Could not clean up invite code " + inviteCode + " for email " + account.getUsername(), e);
                 }
                 logger.info("Account successfully saved");
 
@@ -224,10 +237,11 @@ public class SignupController extends WebApplicationObjectSupport {
         @Username
         private String username;
 
-
         @NotEmpty
         private String invite;
 
+
+        private String terms;
 
         public String getFullname() {
             return fullname;
@@ -269,5 +283,12 @@ public class SignupController extends WebApplicationObjectSupport {
             this.invite = invite;
         }
 
+        public String getTerms() {
+            return terms;
+        }
+
+        public void setTerms(String terms) {
+            this.terms = terms;
+        }
     }
 }

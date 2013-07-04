@@ -46,7 +46,10 @@ mixin grouped_select
         p.help-block= attributes.help
 
 mixin grouped_checkbox
-  .control-group
+  controlGroupClass = "control-group"
+  if formErrors && formErrors.hasFieldErrors(attributes.name)
+    controlGroupClass = controlGroupClass + " error"
+  div(class=controlGroupClass)
     if attributes.label
       label.control-label= attributes.label
     .controls
@@ -61,6 +64,8 @@ mixin grouped_checkbox
         span= attributes.description
       if attributes.help
         p.help-block= attributes.help
+      if formErrors && formErrors.hasFieldErrors(attributes.name)
+        span.help-inline= formErrors.getFieldErrors(attributes.name).get(0)
 
 mixin prompting_input
   .prompting-input

@@ -5,59 +5,20 @@ block settings
     h4 Welcome to tripography.
     p
       | You have no vehicles registered with tripography.  To register your vehicle(s) with tripography, please enter
-      |  your Tesla Motors email address and password in the form below.
+      |  your <b>Tesla Motors email address and password</b> in the form below.
     hr
     +form("/settings/vehicles/register").form-horizontal.form6
       fieldset
         +grouped_input(label="Email", id="username", type="text", name="username").input-large
         +grouped_input(label="Password", id="password", type="password", name="password").input-large
       .form-actions
-        p By registering your vehicle you agree to the terms below.
         button.btn.btn-primary(type="submit") Register
     hr
     p
-      b Note:&nbsp;
-      | The official Terms of Service and Privacy Policy for Tripography are being finalized. If you wish to use the service
-      |  in the interim, you agree to the following:
-    p
-      b Terms.&nbsp;
-      | By providing your Tesla Motors credentials, you are giving your permission for Tripography to periodically access
-      |  vehicle telemetry data from your vehicle.  Telemetry data includes various information about your vehicle including
-      |  the vehicle type (battery, color, options, etc.), vehicle identification number (VIN), the vehicle's current odometer reading, drive state,
-      |  battery level, charging status, and current location. You retain all right to this data, but grant to tripography
-      |  a world-wide, perpetual, and royalty-free license to publish, analyze and aggregate this data on the tripography website.
-    p Tripography is a work in progress and is offered "as-is".  Features may change, access to the site may be unreliable, and data readings may
-      |  be unreliable while the site is under development.  You should not rely on the data provided by tripography to be accurate or
-      |  make decisions based on that data.
-    p You may request that your account and all your data be deleted at any time by contacting support@tripography.com.
-    p
-      b Privacy.&nbsp;
-      | Your privacy is very important.  Great care is taken in designing and implementing this site to protect your privacy.
-      |  The information we collect and how it is shared are outlined below:
-      ul
-        li Data we collect, but do not share publicly:
-          ul
-            li Your name and email address
-            li Your Tesla Motors login name
-            li Your Vehicle Identification Number (VIN)
-            li Your Vehicle's precise GPS location.
-        li Data we collect, analyze, and publish:
-          ul
-            li Your username.
-            li Your Vehicle "type" including battery type, trim levels, etc.
-            li Your Vehicle's current odometer reading.
-            li When you register your vehicle, we obtain your vehicle's current location to determine your timezone and
-              |  geographic region.  This information is used for aggregating vehicle data across similar
-              |  geographic regions.  Data is currently aggregated to the "county", state, and country levels.  We do
-              |  not currently store your vehicle's exact GPS location.
-            li We obtain nightly odometer readings from your vehicle to determine your daily driving distance.  This
-              |  information is made publicly available under your account and aggregated by vehicle type and geographic
-              |  region.
-            li We intend to, but do not currently, obtain data about your vehicle's state of charge and charging times.
-              |  This data will be published and aggregated in a manner similar to daily driving distance in the near future.
-    p
-      b Security Note:&nbsp;
+      b Security and Privacy Reminder:&nbsp;
       | We use your Tesla Motors username and password to obtain
       |  a security token (cookie) from the Tesla Motors vehicle telemetry service.  We do not access the My Tesla page on
       |  teslamotors.com and your Tesla Motors password is never stored on our servers.  We encrypt and securely store
-      |  the security token on our servers and use it to periodically obtain telemetry data from your vehicle.
+      |  the security token on our servers and use it to periodically obtain telemetry data from your vehicle.  Use of your
+      |  vehicle's data is governed by the site's <a href="/legal/terms">Terms of Use</a> and
+      |  <a href="/legal/privacy">Privacy Policy</a>.

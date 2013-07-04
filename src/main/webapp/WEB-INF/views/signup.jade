@@ -9,8 +9,20 @@ block content
           fieldset
             +grouped_input(type="text", id="fullname", name="fullname", label="Full Name").input-large
             +grouped_input(type="email", id="email", name="email", label="Email").input-large
-            +grouped_input(type="password", id="password", name="password", label="Password").input-large
-            +grouped_input(type="text", id="username", name="username", label="Username").input-large
-            +grouped_input(type="text", id="invite", name="invite", label="Invite Code").input-large
+            +grouped_input(type="text", id="username", name="username", label="Username", help="Choose a tripography username.").input-large
+            +grouped_input(type="password", id="password", name="password", label="Password", help="Choose a password.").input-large
+            +grouped_input(type="text", id="invite", name="invite", label="Invite Code", help="Your personal invite code.").input-large
+          hr
+          .row
+            .span5
+              p You must agree to the following Terms of Use to register for tripography:
+              .terms
+                include legal/terms-formatted
+              p Printable versions are available here:
+                a(href="/legal/terms", target="_blank") Terms of Use
+                |  and
+                a(href="/legal/privacy", target="_blank") Privacy Policy
+                | .
+          +grouped_checkbox(id="terms", name="terms", value="agree", description="I accept and agree to the Tripography Terms of Use.").input-large
           .form-actions
             button.btn.btn-primary(type="submit") Create account
