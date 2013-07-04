@@ -29,5 +29,14 @@ public class StaticContentController {
         return "legal/privacy";
     }
 
+    @RequestMapping(value = {"/about", "/about/"}, method = RequestMethod.GET)
+    public String getAbout() {
+        return "redirect:/about/contact";
+    }
+
+    @RequestMapping(value = "/about/contact", method = RequestMethod.GET)
+    public String getContactInfo() {
+        return "about/contact";
+    }
 
 }

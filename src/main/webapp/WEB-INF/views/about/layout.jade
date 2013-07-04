@@ -1,0 +1,12 @@
+extends ../site
+
+block content
+  .row
+    .span2
+      .well(style="padding: 8px 0;")
+        ul.nav.nav-list
+          li.nav-header About
+          +nav_item("/about/contact", "Contact")
+          //- +nav_item("/legal/privacy", "Privacy Policy")
+    .span10
+      block sidebar
