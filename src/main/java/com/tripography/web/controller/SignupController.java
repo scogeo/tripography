@@ -127,6 +127,7 @@ public class SignupController extends WebApplicationObjectSupport {
                         else {
                             inviteService.deleteInviteCode(inviteCode);
                         }
+                        
                         InviteRequest request = inviteService.findByEmail(account.getEmail());
                         if (request != null) {
                             inviteService.delete(request.getId());
