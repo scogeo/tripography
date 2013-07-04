@@ -25,6 +25,17 @@ block body
     .container
       block content
 
+    .footer
+      .container
+        ul.footer-links
+          li &copy; 2013 tripography
+          li.muted ·
+          li
+            a(href="/legal/terms") Terms of Use
+          li.muted ·
+          li
+            a(href="/legal/privacy") Privacy Policy
+
     script(src="#{assets.scriptURL('loader.min.js')}", data-main="#{assets.scriptURL('core')}")
 
     //-+script("core")
