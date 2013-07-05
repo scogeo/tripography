@@ -1,5 +1,6 @@
 package com.tripography.web.controller;
 
+import com.rumbleware.email.EmailService;
 import com.rumbleware.invites.InviteCode;
 import com.rumbleware.invites.InviteRequest;
 import com.rumbleware.invites.InviteService;
@@ -11,6 +12,7 @@ import com.tripography.telemetry.DailyVehicleReadingRepository;
 import com.tripography.telemetry.VehicleTelemetryService;
 import com.tripography.vehicles.Vehicle;
 import com.tripography.vehicles.VehicleService;
+import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,6 +62,9 @@ public class AdminController extends WebApplicationObjectSupport {
 
     @Autowired
     private VehicleTelemetryService telemetryService;
+
+    @Autowired
+    private EmailService emailService;
 
     @RequestMapping(method = RequestMethod.GET)
     public String mainPage(Principal user) {
@@ -227,6 +232,82 @@ public class AdminController extends WebApplicationObjectSupport {
         model.addAttribute("owner", accountService.findById(vehicle.getAccountId()));
 
         return "admin/vehicle";
+    }
+
+    @RequestMapping(value = "email/test", method = RequestMethod.GET)
+    public String getTestEmailPage() {
+
+
+
+
+        return "admin/email/test";
+    }
+
+    @RequestMapping(value = "email/test", method = RequestMethod.POST)
+    public String sendTestEmail(@ModelAttribute("email") @Valid TestEmailForm form,
+                                BindingResult bindingResult, Model model, RedirectAttributes redirectAttrs) {
+
+        logger.info("Test email called" + form);
+
+        model.addAttribute("form", form);
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("form", form);
+            model.addAttribute("formErrors", new FormErrors(bindingResult, getWebApplicationContext()));
+            return "admin/email/test";
+        }
+
+        emailService.sendMessageToEmail(form.getEmail(), form.getSubject(), form.getBody());
+
+        //redirectAttrs.addFlashAttribute("message", "Invite code created");
+
+        return "redirect:/olympus/email/test";
+    }
+
+    public static class TestEmailForm {
+
+        @NotEmpty
+        @Email
+        private String email;
+
+        @NotEmpty
+        private String subject;
+
+        @NotEmpty
+        private String body;
+
+        public String getEmail() {
+            return email;
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        public String getSubject() {
+            return subject;
+        }
+
+        public void setSubject(String subject) {
+            this.subject = subject;
+        }
+
+        public String getBody() {
+            return body;
+        }
+
+        public void setBody(String body) {
+            this.body = body;
+        }
+
+        @Override
+        public String toString() {
+            return "TestEmailForm{" +
+                    "email='" + email + '\'' +
+                    ", subject='" + subject + '\'' +
+                    ", body='" + body + '\'' +
+                    '}';
+        }
     }
 
     public static class InviteCodeForm {

@@ -1,0 +1,17 @@
+extends ../layout
+
+block admin
+  .well
+    h4 Send Test Email
+    if message
+      div.alert.alert-success
+        strong Success!&nbsp;
+        = message
+    +form("/olympus/email/test").form-horizontal
+      fieldset
+        +grouped_input(label="Email", id="email", type="email", name="email").input-large
+        +grouped_input(label="Subject", id="subject", type="text", name="subject").input-large
+        +grouped_input(label="Body", id="body", type="textarea", name="body").input-large
+      .form-actions
+        button.btn.btn-primary(type="submit") Send
+

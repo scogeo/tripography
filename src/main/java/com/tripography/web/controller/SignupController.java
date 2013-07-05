@@ -55,10 +55,7 @@ public class SignupController extends WebApplicationObjectSupport {
 
     @RequestMapping(method = {RequestMethod.GET })
     public String displaySingnupForm(Principal user, Model model) {
-        logger.info("signup called with get");
-
         model.addAttribute("account", new AccountForm());
-
         // if authenticated redirect to home page
         if (user != null) {
             return "redirect:/";
@@ -70,14 +67,6 @@ public class SignupController extends WebApplicationObjectSupport {
     public String processSignupForm(Principal user,
                                     @ModelAttribute("account") @Valid AccountForm accountForm, BindingResult bindingResult,
                                     Model model) {
-        logger.info("signup called with post");
-
-        logger.info("binding result is " + bindingResult);
-
-        logger.info("keys are " + model.asMap().keySet());
-
-        logger.info("terms is " + accountForm.getTerms());
-
         if (user != null) {
             return "redirect:/";
         }
@@ -114,7 +103,6 @@ public class SignupController extends WebApplicationObjectSupport {
             account.setEmail(accountForm.getEmail());
             account.setClearTextPassword(accountForm.getPassword());
 
-            logger.info("Username is " + account.getUsername());
             try {
                 accountService.update(account);
                 // Decrement the invite code
@@ -127,7 +115,7 @@ public class SignupController extends WebApplicationObjectSupport {
                         else {
                             inviteService.deleteInviteCode(inviteCode);
                         }
-                        
+
                         InviteRequest request = inviteService.findByEmail(account.getEmail());
                         if (request != null) {
                             inviteService.delete(request.getId());
@@ -137,8 +125,6 @@ public class SignupController extends WebApplicationObjectSupport {
                 catch(Exception e) {
                     logger.error("Could not clean up invite code " + inviteCode + " for email " + account.getUsername(), e);
                 }
-                logger.info("Account successfully saved");
-
             }
             catch(UniqueKeyException e) {
                 logger.warn("hit a duplicate key " + e.getKey());

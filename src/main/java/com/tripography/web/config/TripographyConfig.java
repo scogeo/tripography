@@ -1,5 +1,6 @@
 package com.tripography.web.config;
 
+import com.rumbleware.email.EmailService;
 import com.rumbleware.tesla.api.TeslaPortal;
 import com.rumbleware.web.config.BaseApplicationConfigurationSupport;
 import org.springframework.context.annotation.Bean;
@@ -21,5 +22,10 @@ public class TripographyConfig extends BaseApplicationConfigurationSupport {
     public TeslaPortal getTeslaPortal() {
         return new TeslaPortal();
 
+    }
+
+    @Bean
+    public EmailService getEmailSerivce() {
+        return new EmailService("Tripography", "no-reply@tripography.com");
     }
 }
