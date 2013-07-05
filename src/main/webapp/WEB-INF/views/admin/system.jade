@@ -6,6 +6,16 @@ block admin
     each profile in environment.activeProfiles
       code= profile
       | &nbsp;
+  h2 AWS Keys
+  table.table.table-bordered.table-striped
+    tbody
+      tr
+        td Access Key
+        td= aws.getAWSAccessKeyId()
+      tr
+        td Secret Key
+        td= aws.getAWSSecretKey()
+        
   h2 System Environment
   table.table.table-bordered.table-striped
     colgroup

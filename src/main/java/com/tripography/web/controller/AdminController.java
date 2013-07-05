@@ -1,5 +1,6 @@
 package com.tripography.web.controller;
 
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.rumbleware.email.EmailService;
 import com.rumbleware.invites.InviteCode;
 import com.rumbleware.invites.InviteRequest;
@@ -66,13 +67,17 @@ public class AdminController extends WebApplicationObjectSupport {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private AWSCredentialsProvider awsCredentialsProvider;
+
     @RequestMapping(method = RequestMethod.GET)
     public String mainPage(Principal user) {
         return "redirect:/olympus/stats";
     }
 
     @RequestMapping(value = "system", method = RequestMethod.GET)
-    public String systemPage(Principal user) {
+    public String systemPage(Principal user, Model model) {
+        model.addAttribute("aws", awsCredentialsProvider.getCredentials());
         return "admin/system";
     }
 
