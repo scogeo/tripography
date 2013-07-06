@@ -72,7 +72,9 @@ public class ChartDataController {
             if (firstMonth < 0) {
                 firstMonth = month;
             }
-            for (int day = 1; day <= 31; day++) {
+
+            calendar.set(Calendar.MONTH, month - 1);
+            for (int day = 1; day <= calendar.getActualMaximum(Calendar.DAY_OF_MONTH); day++) {
                 Object dailyValue = monthlyValues.get(Integer.toString(day));
                 if (dailyValue == null) {
                     if (firstDay > 0) {
