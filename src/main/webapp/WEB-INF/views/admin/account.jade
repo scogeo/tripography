@@ -1,6 +1,9 @@
 extends layout
 
 block admin
+  if message
+    .alert
+      = message
   h2 Account (#{userAccount.username})
   table.table.table-striped
     thead
@@ -22,6 +25,28 @@ block admin
         td
           a(href="/#{userAccount.username}") /#{userAccount.username}
   hr
+  h4 Vehicles
+  table.table.table-striped
+    thead
+      tr
+        th Id
+        th VIN
+        th Description
+        th TimeZone
+    tbody
+      each vehicle in vehicles
+        tr
+          td
+            a(href="/olympus/vehicles/#{vehicle.id}")= formatter.formatObjectId(vehicle.Id)
+          td
+            a(href="/olympus/vehicles/#{vehicle.id}")= vehicle.VIN
+          td= vehicle.makeAndModel
+          if vehicle.timeZone
+            td= vehicle.timeZone.ID
+          else
+            td Unknown.
+  hr
+
   h4 Password Reset
   target = "/olympus/accounts/" + userAccount.id + "/password"
   +form(target).form-horizontal

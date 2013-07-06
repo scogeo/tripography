@@ -13,6 +13,7 @@ import com.tripography.telemetry.DailyVehicleReadingRepository;
 import com.tripography.telemetry.VehicleTelemetryService;
 import com.tripography.vehicles.Vehicle;
 import com.tripography.vehicles.VehicleService;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;
@@ -23,10 +24,7 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.support.WebApplicationObjectSupport;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -202,6 +200,8 @@ public class AdminController extends WebApplicationObjectSupport {
 
         model.addAttribute("accounts", accounts);
 
+
+
         return "admin/accounts";
     }
 
@@ -210,11 +210,41 @@ public class AdminController extends WebApplicationObjectSupport {
 
         Account account = accountService.findById(accountId);
 
+        List<Vehicle> vehicles = vehicleService.getVehiclesByAccount(accountId);
         // Don't set the "account" attribute as we use that for logged-in user in some cases, need to check this.
         model.addAttribute("userAccount", account);
-
+        model.addAttribute("vehicles", vehicles);
         return "admin/account";
     }
+
+    @RequestMapping(value = "accounts/{accountId}/password", method = RequestMethod.POST)
+    public String getAccounts(@PathVariable("accountId") String accountId, @RequestParam("newPassword") String password,
+                              @RequestParam("confirmPassword") String verifyPassword, Principal user, Model model,
+                              RedirectAttributes redirectAttrs) {
+
+        Account account = accountService.findById(accountId);
+
+        logger.info("UPdate passwrod called with " + password + " and " + verifyPassword);
+
+        String message = null;
+
+        if (StringUtils.isEmpty(password) || StringUtils.isEmpty(verifyPassword)) {
+            message = "Password is empty";
+        }
+        else if (password.equals(verifyPassword)) {
+            accountService.updatePassword(accountId, password);
+            message = "Password updated.";
+        }
+        else {
+            message = "Passwords do not match.";
+        }
+
+        redirectAttrs.addFlashAttribute("message", message);
+
+        return "redirect:/olympus/accounts/" + accountId;
+
+    }
+
 
 
     @RequestMapping(value = "vehicles", method = RequestMethod.GET)
