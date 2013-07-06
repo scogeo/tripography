@@ -21,3 +21,13 @@ block admin
         td Profile Page
         td
           a(href="/#{userAccount.username}") /#{userAccount.username}
+  hr
+  h4 Password Reset
+  target = "/olympus/accounts/" + userAccount.id + "/password"
+  +form(target).form-horizontal
+    fieldset
+      +grouped_input(label="New password", id="newPassword", type="password", name="newPassword").input-large
+      +grouped_input(label="Verify password", id="confirmPassword", type="password", name="confirmPassword").input-large
+    .form-actions
+      button.btn.btn-primary(type="submit") Update Password
+

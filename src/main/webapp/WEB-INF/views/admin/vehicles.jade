@@ -20,6 +20,9 @@ block admin
           td
             a(href="/olympus/accounts/#{vehicle.accountId}")= formatter.formatObjectId(vehicle.accountId)
           td= vehicle.makeAndModel
-          td= vehicle.timeZone.ID
+          if vehicle.timeZone
+            td= vehicle.timeZone.ID
+          else
+            td Unknown.
 
 

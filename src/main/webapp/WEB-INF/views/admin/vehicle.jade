@@ -29,7 +29,10 @@ block admin
 
       tr
         td TimeZone
-        td= vehicle.timeZone.ID
+        if vehicle.timeZone
+          td= vehicle.timeZone.ID
+        else
+          td Unknown.
       tr
         td Region
         //-td = vehicle.region.get("city")

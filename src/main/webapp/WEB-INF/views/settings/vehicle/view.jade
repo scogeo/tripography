@@ -22,7 +22,10 @@ block settings
           | #{vehicle.odometer.odometer} miles (last updated #{formatter.formatDate(vehicle.odometer.timestamp)})
       p
         b Timezone:&nbsp;
-        = vehicle.timeZone.ID
+        if vehicle.timeZone
+          = vehicle.timeZone.ID
+        else
+          | Unknown.
       p
         b Home Location (County/State):&nbsp;
         = vehicle.homeLocation
