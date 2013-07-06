@@ -22,7 +22,8 @@ public class EmailServiceTest {
 
         @Bean
         public EmailService getEmailService() {
-            return new EmailService("Tripography", "no-reply@tripography.com");
+            return null;
+            //return new EmailService("Tripography", "no-reply@tripography.com");
         }
     }
 

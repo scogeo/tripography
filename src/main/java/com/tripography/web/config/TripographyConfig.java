@@ -26,6 +26,9 @@ public class TripographyConfig extends BaseApplicationConfigurationSupport {
 
     @Bean
     public EmailService getEmailSerivce() {
-        return new EmailService("Tripography", "no-reply@tripography.com");
+        // We have to pass these is the credentials for email for now, the IAM instance role
+        // doesnt' seem to work.
+        return new EmailService("Tripography", "no-reply@tripography.com",
+                "AKIAJPGPNV4XPAJLIZYQ", "Rb8mbfNortNvXCzcmokou9yNpmU++p9RyLIQ9xxS");
     }
 }
