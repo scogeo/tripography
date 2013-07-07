@@ -149,13 +149,22 @@ public class AdminController extends WebApplicationObjectSupport {
     @RequestMapping(value = "invites/update", method = RequestMethod.POST)
     public String updateInvites(Principal user, @ModelAttribute("invites") InviteForm inviteForm, HttpServletRequest request, Model model) {
 
-
         logger.info("get form " + inviteForm.getSelected());
 
         logger.info("Updates are " + request.getParameterMap());
 
         return "redirect:/olympus/invites";
 
+    }
+
+    @RequestMapping(value = "invites/{inviteId}/invite", method = RequestMethod.POST)
+    public String updateInvites(@PathVariable("inviteId") String inviteId) {
+        logger.info("Invite requested for invite id " + inviteId);
+
+        InviteRequest request = inviteService.createInviteCode(inviteId);
+
+        //emailService.sendMessageToEmail("George Scott", "gscott@tripography.com", request.getEmail(), "Welcome to Tripography!", emailBody);
+        return "redirect:/olympus/invites";
     }
 
     @RequestMapping(value = "dailyReadings", method = RequestMethod.GET)
@@ -271,10 +280,6 @@ public class AdminController extends WebApplicationObjectSupport {
 
     @RequestMapping(value = "email/test", method = RequestMethod.GET)
     public String getTestEmailPage() {
-
-
-
-
         return "admin/email/test";
     }
 

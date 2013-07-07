@@ -2,29 +2,36 @@ extends layout
 
 block admin
   h2 Invite Requests (#{requests.size()})
-  +form("/olympus/invites/update")#invitesForm
-    .btn-group
-      button.btn Action
-      button.btn.dropdown-toggle(data-toggle="dropdown")
-        span.caret
-      ul.dropdown-menu
-        li
-          a(href="#", onclick="$('#invitesForm').submit()") Invite
-        li.divider
-        li
-          button(href="#").button Delete
-    table.table.table-striped
-      thead
+  .btn-group
+    button.btn Action
+    button.btn.dropdown-toggle(data-toggle="dropdown")
+      span.caret
+    ul.dropdown-menu
+      li
+        a(href="#", onclick="$('#invitesForm').submit()") Invite
+      li.divider
+      li
+        button(href="#").button Delete
+  table.table.table-striped
+    thead
+      tr
+        th Select
+        th Email
+        th Date
+        th Invite Code
+    tbody
+      each request in requests
         tr
-          th Select
-          th Name
-          th Value
-      tbody
-        each request in requests
-          tr
+          td
+            input(type="checkbox", name="selected" value="#{request.id}")
+          td= request.email
+          td= formatter.formatDate(request.createdDate)
+          if request.inviteCode
+            td= request.inviteCode
+          else
             td
-              input(type="checkbox", name="selected" value="#{request.id}")
-            td= request.email
-            td= formatter.formatDate(request.createdDate)
+              action = "/olympus/invites/" + request.id + "/invite";
+              +form(action).form-inline
+                button(type="submit").btn Invite
 
 
