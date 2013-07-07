@@ -161,9 +161,8 @@ public class AdminController extends WebApplicationObjectSupport {
     public String updateInvites(@PathVariable("inviteId") String inviteId) {
         logger.info("Invite requested for invite id " + inviteId);
 
-        InviteRequest request = inviteService.createInviteCode(inviteId);
+        inviteService.createInviteCode(inviteId);
 
-        //emailService.sendMessageToEmail("George Scott", "gscott@tripography.com", request.getEmail(), "Welcome to Tripography!", emailBody);
         return "redirect:/olympus/invites";
     }
 
