@@ -296,7 +296,7 @@ public class AdminController extends WebApplicationObjectSupport {
             return "admin/email/test";
         }
 
-        emailService.sendMessageToEmail(form.getEmail(), form.getSubject(), form.getBody());
+        emailService.sendMessageToEmail("", form.getEmail(), form.getSubject(), form.getBody());
 
         //redirectAttrs.addFlashAttribute("message", "Invite code created");
 

@@ -1,6 +1,8 @@
 package com.tripography.web.config;
 
 import com.rumbleware.email.EmailService;
+import com.rumbleware.email.MandrillEmailService;
+import com.rumbleware.email.SESEmailService;
 import com.rumbleware.tesla.api.TeslaPortal;
 import com.rumbleware.web.config.BaseApplicationConfigurationSupport;
 import org.springframework.context.annotation.Bean;
@@ -28,7 +30,6 @@ public class TripographyConfig extends BaseApplicationConfigurationSupport {
     public EmailService getEmailSerivce() {
         // We have to pass these is the credentials for email for now, the IAM instance role
         // doesnt' seem to work.
-        return new EmailService("Tripography", "no-reply@tripography.com",
-                "AKIAJPGPNV4XPAJLIZYQ", "Rb8mbfNortNvXCzcmokou9yNpmU++p9RyLIQ9xxS");
+        return new MandrillEmailService("Tripography", "no-reply@tripography.com", "GgEI1FrQVBpbc36HQAsmOQ");
     }
 }
