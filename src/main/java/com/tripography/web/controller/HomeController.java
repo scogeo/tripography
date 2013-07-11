@@ -42,12 +42,18 @@ public class HomeController {
     @Autowired
     VehicleProviderService providerService;
 
+
+    private long vehicleCountTimeStamp = 0;
+    private long vehicleCount = 0;
+
     // temporarily added HEAD support to see if AWS is happy
     @RequestMapping(value = "/", method = { RequestMethod.GET, RequestMethod.HEAD })
     //@RequestMapping(value = "/")
     public String home(@Nullable Principal principal, Model model) {
 
         model.addAttribute("inviteRequest", new InviteForm());
+
+        model.addAttribute("vehicleCount", vehicleService.getVehicleCount());
 
         if (principal == null) {
             return "welcome";
@@ -56,6 +62,15 @@ public class HomeController {
             String userId = SaltedUser.userIdFromPrincipal(principal);
             return renderHomePage(userId, model);
         }
+    }
+
+    private long getVehicleCount() {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime > vehicleCountTimeStamp + (3600 * 1000)) {
+            vehicleCount = vehicleService.getVehicleCount();
+            vehicleCountTimeStamp = currentTime;
+        }
+        return vehicleCount;
     }
 
     private String renderHomePage(String userId, Model model) {

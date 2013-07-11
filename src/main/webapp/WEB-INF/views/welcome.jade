@@ -2,21 +2,19 @@
 extends site
 
 block content
+  include vehicles/charts
   .row
     .span8
-      .hero-unit.hero-invite
-        h1 Driving <em style="color: green;">EV</em>olved.
-        p Track and share your road trips and daily drives.
-        .invite-request
-          p Tesla Model S Owner?
-          p Request an invitation to join tripography.
-          +form("/invite/request").form-inline(id="inviteform", prompt)
-            +prompting_input(type="email", name="email", data-prompt="Email").input-xlarge
-            | &nbsp;
-            button(type="submit").btn.btn-primary Request Invitation
+      h2 Welcome to Tripography.
+      p Tripography collects and analyzes real-world driving data from Tesla Model S vehicles to provide better insights
+        |  into how people use their vehicles on a daily basis.
+
+      h4 Latest Vehicle Statistics
+      p Tripography is currently monitoring #{vehicleCount} vehicles throughout North America.  The chart below show the distribution of daily driving distances for all vehicles to date.
+      div#dailyHistogramChart(style="height: 400px; margin: 0 auto", data-vehicle-id="all", data-require-elem="charts/daily-histogram")
     .span4
       .welcome-signin.well
-        h3 Sign In
+        h4 Sign In
         loginUrl = urlHelper.secureUrl("/auth/login/verify")
         +form(loginUrl)(id="signinform", prompt)
           fieldset
@@ -24,4 +22,12 @@ block content
             +prompting_input(type="password", name="password", data-prompt="Password").span3
             +grouped_checkbox(id="rememberme", name="remember_me", value="1", description="Remember me", cookie="_remember_me")
             button(type="submit", name="submit", value="Login", class="btn") Sign In
-
+      .well.hero-invite
+        h4 Own a Tesla Model S?
+        p Track and share your road trips and daily drives.
+        .invite-request
+          p Request an invitation to join tripography.
+          +form("/invite/request").form-inline(id="inviteform", prompt)
+            +prompting_input(type="email", name="email", data-prompt="Email").input-medium
+            | &nbsp;
+            button(type="submit").btn.btn-primary Request Invitation

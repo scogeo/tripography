@@ -9,9 +9,14 @@ import java.util.Map;
  */
 public interface VehicleAnalyticsService {
 
+
+    DBObject dailyDistanceForAll(String year);
+
     DBObject dailyDistanceForVehicle(String vehicleId, String year);
 
     DBObject dailyDistanceForAccount(String accountId, String year);
+
+    DBObject dailyHistogramForAll();
 
     DBObject dailyHistogramForVehicle(String vehicleId);
 

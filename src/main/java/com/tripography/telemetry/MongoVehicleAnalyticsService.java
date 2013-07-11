@@ -23,6 +23,13 @@ public class MongoVehicleAnalyticsService implements VehicleAnalyticsService {
     }
 
     @Override
+    public DBObject dailyDistanceForAll(String year) {
+        String id = year + "/all";
+        return mongoTemplate.findOne(query(where("_id").is(id)), DBObject.class, "dailyDistance");
+    }
+
+
+    @Override
     public DBObject dailyDistanceForVehicle(String vehicleId, String year) {
         String id = year + "/vehicle/" + vehicleId;
         return mongoTemplate.findOne(query(where("_id").is(id)), DBObject.class, "dailyDistance");
@@ -45,4 +52,11 @@ public class MongoVehicleAnalyticsService implements VehicleAnalyticsService {
         String id = "account/" + accountId;
         return mongoTemplate.findOne(query(where("_id").is(id)), DBObject.class, "dailyHistogram");
     }
+
+    @Override
+    public DBObject dailyHistogramForAll() {
+        String id = "all";
+        return mongoTemplate.findOne(query(where("_id").is(id)), DBObject.class, "dailyHistogram");
+    }
+
 }

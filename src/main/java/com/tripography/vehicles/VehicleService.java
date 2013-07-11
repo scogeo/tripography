@@ -22,6 +22,8 @@ public interface VehicleService extends BasicService<Vehicle> {
      */
     public List<Vehicle> getAllVehicles();
 
+    public long getVehicleCount();
+
     /**
      *
      */

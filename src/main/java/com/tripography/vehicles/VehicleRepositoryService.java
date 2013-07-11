@@ -5,7 +5,11 @@ import com.rumbleware.maps.TimeZoneGeoCoder;
 import com.rumbleware.tesla.api.TeslaPortal;
 import com.tripography.providers.VehicleProvider;
 import org.bson.types.ObjectId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -24,6 +28,8 @@ import static org.springframework.data.mongodb.core.query.Query.query;
  */
 @Service("vehicleService")
 public class VehicleRepositoryService extends BasicRepositoryService<Vehicle, VehicleRepository> implements VehicleService {
+
+    private static final Logger logger = LoggerFactory.getLogger(VehicleRepositoryService.class);
 
     private TeslaPortal teslaPortal;
 
@@ -44,6 +50,14 @@ public class VehicleRepositoryService extends BasicRepositoryService<Vehicle, Ve
     }
 
     @Override
+    @Cacheable("vehicleCount")
+    public long getVehicleCount() {
+        logger.info("Getting vehicle count");
+        return repository.count();
+    }
+
+    @Override
+    @CacheEvict("vehicleCount")
     public List<Vehicle> addVehiclesFromProvider(String ownerId, VehicleProvider provider) {
         List<Vehicle> vehicles = provider.getVehicles(teslaPortal);
         for (Vehicle vehicle : vehicles) {

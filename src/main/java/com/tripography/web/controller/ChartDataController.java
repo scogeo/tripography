@@ -25,6 +25,16 @@ public class ChartDataController {
     @Autowired
     private VehicleAnalyticsService analyticsService;
 
+    @RequestMapping(value = "/all/daily.json", method = {RequestMethod.GET}, produces = "application/json")
+    public @ResponseBody String allDailyOdometerData() {
+        DBObject result = analyticsService.dailyDistanceForAll("2013");
+        if (result != null) {
+            return result.toString();
+        }
+        else {
+            return "{}";
+        }
+    }
 
     @RequestMapping(value = "/vehicle/{vehicleId}/daily.json", method = {RequestMethod.GET}, produces = "application/json")
     public @ResponseBody String vehicleDailyOdometerData(@PathVariable("vehicleId") String vehicleId) {
@@ -115,6 +125,26 @@ public class ChartDataController {
         // Prune trailing nulls
 
         return result;
+    }
+
+    private String allVehicleHistogram = "{}";
+    private long allVehicleHistogramTimestamp = 0;
+
+    @RequestMapping(value = "/all/daily-histogram.json", method = {RequestMethod.GET}, produces = "application/json")
+    public @ResponseBody String vehicleDailyHistogramData() {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime > allVehicleHistogramTimestamp * 3600 * 1000) {
+            DBObject result = analyticsService.dailyHistogramForAll();
+            if (result != null) {
+                allVehicleHistogram = result.toString();
+            }
+            else {
+                allVehicleHistogram = "{}";
+            }
+            allVehicleHistogramTimestamp = currentTime;
+        }
+        return allVehicleHistogram;
+
     }
 
     @RequestMapping(value = "/vehicle/{vehicleId}/daily-histogram.json", method = {RequestMethod.GET}, produces = "application/json")
