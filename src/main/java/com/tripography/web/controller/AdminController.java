@@ -205,7 +205,7 @@ public class AdminController extends WebApplicationObjectSupport {
     @RequestMapping(value = "accounts", method = RequestMethod.GET)
     public String getAccounts(Principal user, Model model) {
 
-        List<Account> accounts = accountService.findAll();
+        List<Account> accounts = accountService.findAll(new Sort(Sort.Direction.DESC, "c"));
 
         model.addAttribute("accounts", accounts);
 
