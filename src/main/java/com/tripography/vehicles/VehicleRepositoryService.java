@@ -52,7 +52,6 @@ public class VehicleRepositoryService extends BasicRepositoryService<Vehicle, Ve
     @Override
     @Cacheable("vehicleCount")
     public long getVehicleCount() {
-        logger.info("Getting vehicle count");
         return repository.count();
     }
 

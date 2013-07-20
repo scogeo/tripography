@@ -37,7 +37,11 @@ block admin
               = reading.status
               if reading.errorCount > 0
                 |  (#{reading.errorCount})
-            td #{reading.lastReading.odometer} (#{formatter.formatDateTime(reading.lastReading.timestamp, reading.TimeZone)})
+            td
+              if reading.lastReading
+                #{reading.lastReading.odometer} (#{formatter.formatDateTime(reading.lastReading.timestamp, reading.TimeZone)})
+              else
+                No reading
             td= formatter.formatDateTime(reading.nextReadingDate, reading.timeZone)
             td= formatter.formatDateTime(reading.forDate, reading.timeZone)
             td= reading.timeZone.ID
