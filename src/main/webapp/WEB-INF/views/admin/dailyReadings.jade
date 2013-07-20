@@ -41,7 +41,7 @@ block admin
               if reading.lastReading
                 #{reading.lastReading.odometer} (#{formatter.formatDateTime(reading.lastReading.timestamp, reading.TimeZone)})
               else
-                No reading
+                | No reading
             td= formatter.formatDateTime(reading.nextReadingDate, reading.timeZone)
             td= formatter.formatDateTime(reading.forDate, reading.timeZone)
             td= reading.timeZone.ID

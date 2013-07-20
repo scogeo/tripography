@@ -14,6 +14,7 @@ import com.tripography.telemetry.VehicleTelemetryService;
 import com.tripography.vehicles.Vehicle;
 import com.tripography.vehicles.VehicleService;
 import org.apache.commons.lang3.StringUtils;
+import org.bson.types.ObjectId;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;
@@ -273,6 +274,10 @@ public class AdminController extends WebApplicationObjectSupport {
         model.addAttribute("vehicle", vehicle);
 
         model.addAttribute("owner", accountService.findById(vehicle.getAccountId()));
+
+        DailyVehicleReading reading = dailyVehicleReadingRepository.findOne(new ObjectId(vehicleId));
+
+        model.addAttribute("reading", reading);
 
         return "admin/vehicle";
     }

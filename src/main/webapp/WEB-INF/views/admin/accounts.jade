@@ -7,16 +7,16 @@ block admin
       tr
         th Username
         th Email
-        th Profile
+        th Name
         th Created Date
     tbody
       each account in accounts
         tr
           td
             a(href="/olympus/accounts/#{account.id}")= account.username
+            |  (<a href="/#{account.username}">profile</a>)
           td= account.email
-          td
-            a(href="/#{account.username}") /#{account.username}
+          td= account.fullname
           td= formatter.formatDateTime(account.createdDate)
 
 
