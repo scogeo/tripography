@@ -12,23 +12,47 @@ block settings
       a(href="/settings/vehicles/renew") renew token
     each vehicle in vehicles
       hr
-      h4 #{vehicle.makeAndModel}
-      p
-        b VIN:&nbsp;
-        = vehicle.VIN
+      h5 Vehicle Information
+      .row
+        .span3(style="text-align:right")
+          b Vehicle Type:
+        .span3
+          = vehicle.makeAndModel
+      .row
+        .span3(style="text-align:right")
+          b VIN:
+        .span3
+          = vehicle.VIN
       if vehicle.odometer
-        p
-          b Odometer:&nbsp;
-          | #{vehicle.odometer.odometer} miles (last updated #{formatter.formatDate(vehicle.odometer.timestamp)})
-      p
-        b Timezone:&nbsp;
-        if vehicle.timeZone
-          = vehicle.timeZone.ID
-        else
-          | Unknown.
-      p
-        b Home Location (County/State):&nbsp;
-        = vehicle.homeLocation
-      p
-        b Daily Distance Tracking:&nbsp;
-        | enabled
+        .row
+          .span3(style="text-align:right")
+            b Odometer:
+          .span3
+            | #{vehicle.odometer.odometer} miles (last updated #{formatter.formatDate(vehicle.odometer.timestamp)})
+      h5 Vehicle Location
+      .row
+        .span3(style="text-align:right")
+          b Timezone:
+        .span3
+          if vehicle.timeZone
+            = vehicle.timeZone.ID
+          else
+            | Unknown.
+      .row
+        .span3(style="text-align:right")
+          b Home Location (County/State):
+        .span3
+          = vehicle.homeLocation
+      //-.row
+        .offset3.span3(style="padding-top:10px;")
+          //- target = "/settings/vehicles/vehicle/" + vehicle.Id + "/updateLocation"
+          target = "/settings/vehicles/updateLocation"
+          +form(target)
+            button.button Update Location
+            p.muted Update your vehicle's location information using the vehicle's current GPS location. Note: your vehicle must have a good 3G signal.
+      h5 Vehicle Statistics
+      .row
+        .span3(style="text-align:right")
+          b Daily Distance Tracking:
+        .span3
+          | enabled

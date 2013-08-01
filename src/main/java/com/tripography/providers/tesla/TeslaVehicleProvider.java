@@ -126,7 +126,6 @@ public class TeslaVehicleProvider extends VehicleProvider {
                 vehicle.setRegion(address);
 
                 vehicle.setRegionAggregates(computeRegionAggregates(address));
-                vehicle.setVehicleAggregates(computeVehicleAggregates(vehicle));
 
                 TeslaVehicle teslaVehicle = new TeslaVehicle(descriptor, getCredentials(), portal);
 
@@ -140,6 +139,37 @@ public class TeslaVehicleProvider extends VehicleProvider {
         }
 
         return vehicles;
+    }
+
+    public boolean updateVehicleLocation(TeslaPortal portal, Vehicle vehicle) {
+
+        TimeZoneGeoCoder tzCoder = new TimeZoneGeoCoder();
+
+        ReverseGeoCoder geoCoder = new ReverseGeoCoder();
+
+        try {
+            DriveState driveState = portal.driveState(getCredentials(), vehicle.getDetails().getPortalId());
+
+            TimeZone tz = tzCoder.getTimeZone(driveState.getLatitude(), driveState.getLongitude(), true);
+            vehicle.setTimeZone(tz);
+
+            OSMAddress address = geoCoder.getAddress(driveState.getLatitude(), driveState.getLongitude());
+
+            vehicle.setRegion(address);
+
+            vehicle.setRegionAggregates(computeRegionAggregates(address));
+
+            VehicleDescriptor descriptor = portal.vehicle(getCredentials(), vehicle.getDetails().getPortalId());
+
+            TeslaVehicle teslaVehicle = new TeslaVehicle(descriptor, getCredentials(), portal);
+
+            vehicle.setOdometer(teslaVehicle.getOdometer().get());
+        }
+        catch (Exception e) {
+            logger.warn("Unable to set timezone and location", e);
+            return false;
+        }
+        return true;
     }
 
     private Set<String> computeVehicleAggregates(Vehicle vehicle) {

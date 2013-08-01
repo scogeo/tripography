@@ -41,8 +41,13 @@ public class VehicleProvider extends BaseDocument {
         this.accountId = accountId;
     }
 
+
     public String getVendor() {
         return vendor;
+    }
+
+    public boolean updateVehicleLocation(TeslaPortal portal, Vehicle vehicle) {
+        return false;
     }
 
     public List<Vehicle> getVehicles(TeslaPortal portal) {

@@ -1,15 +1,12 @@
 package com.tripography.web.controller;
 
 import com.rumbleware.accounts.UserAccount;
-import com.rumbleware.tesla.TeslaVehicle;
-import com.rumbleware.tesla.VehicleFactory;
-import com.rumbleware.tesla.api.*;
+import com.rumbleware.tesla.api.TeslaPortal;
 import com.rumbleware.web.forms.FormErrors;
 import com.rumbleware.web.security.SaltedUser;
-import com.tripography.accounts.Account;
 import com.tripography.accounts.AccountService;
-import com.tripography.providers.tesla.TeslaVehicleProvider;
 import com.tripography.providers.VehicleProviderService;
+import com.tripography.providers.tesla.TeslaVehicleProvider;
 import com.tripography.telemetry.VehicleTelemetryService;
 import com.tripography.vehicles.Vehicle;
 import com.tripography.vehicles.VehicleService;
@@ -23,10 +20,11 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationObjectSupport;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.validation.Valid;
 import java.security.Principal;
@@ -193,10 +191,67 @@ public class VehiclesSettingsController extends WebApplicationObjectSupport {
             bindingResult.addError(new ObjectError("register", "Username/Password invalid"));
         }
 
-
         return "settings/vehicle/renew";
     }
 
+
+    @RequestMapping(value = "/vehicle/${vehicleId}/updateLocation", method = RequestMethod.POST)
+    public String updateVehicleLocation(Principal principal, @PathVariable("vehicleId") String vehicleId, Model model,
+                              RedirectAttributes redirectAttrs) {
+
+        logger.info("Called with vehicle id " + vehicleId);
+
+        String accountId = SaltedUser.userIdFromPrincipal(principal);
+
+        TeslaVehicleProvider provider = vehicleProviderService.findByAccountId(new ObjectId(accountId));
+
+        Vehicle vehicle = vehicleService.findById(vehicleId);
+
+        if (!vehicle.getAccountId().equals(accountId)) {
+            logger.error("Attempt to update vehicle " + vehicleId + " from different account " + accountId);
+        }
+
+        boolean updated = provider.updateVehicleLocation(teslaPortal, vehicle);
+
+        if (updated) {
+            vehicleService.update(vehicle);
+            redirectAttrs.addFlashAttribute("message", "Vehicle location updated.");
+        }
+        else {
+            redirectAttrs.addFlashAttribute("alert", "Could not update vehicle location");
+        }
+        return "redirect:/settings/vehicles";
+    }
+
+    @RequestMapping(value = "/updateLocation", method = RequestMethod.POST)
+    public String updateVehicleLocation2(Principal principal, Model model,
+                                        RedirectAttributes redirectAttrs) {
+
+        String vehicleId = "5192e9f647284a61c16dfea9";
+
+        logger.info("Called with vehicle id " + vehicleId);
+
+        String accountId = SaltedUser.userIdFromPrincipal(principal);
+
+        TeslaVehicleProvider provider = vehicleProviderService.findByAccountId(new ObjectId(accountId));
+
+        Vehicle vehicle = vehicleService.findById(vehicleId);
+
+        if (!vehicle.getAccountId().equals(accountId)) {
+            logger.error("Attempt to update vehicle " + vehicleId + " from different account " + accountId);
+        }
+
+        boolean updated = provider.updateVehicleLocation(teslaPortal, vehicle);
+
+        if (updated) {
+            vehicleService.update(vehicle);
+            redirectAttrs.addFlashAttribute("message", "Vehicle location updated.");
+        }
+        else {
+            redirectAttrs.addFlashAttribute("alert", "Could not update vehicle location");
+        }
+        return "redirect:/settings/vehicles";
+    }
 
     public static class MyTeslaCredentialsForm {
 
