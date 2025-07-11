@@ -1,8 +1,8 @@
-Tripography was a (now defunct) website that allowed Tesla owenrs to track and view their vehicle stats by retrieving vehicle telementry data using Tesla's (undocumented) API.
+Tripography was a (now defunct) website that allowed Tesla vehicle owners to track and view their vehicle stats by retrieving vehicle telemetry data using Tesla's APIs.
 
 ## Design and implementation 
 
-Tripography is written using Spring MVC with all data stored in mongodb.
+Tripography is written using Spring MVC with data stored in mongodb.
 
 ## Sample Charts
 
