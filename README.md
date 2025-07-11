@@ -6,7 +6,7 @@ Tripography is written using Spring MVC with data stored in mongodb.
 
 ## Sample Charts
 
-Tripography provides a few different charts to view your vehicle's analhytics.
+Tripography provides a few different charts to view your vehicle's driving analytics. A few examples are below:
 
 ### Daily miles
 ![Daily miles Driven](daily.png)
