@@ -34,11 +34,11 @@
 
     <dependencies>
 
-        <dependency>
-            <groupId>com.rumbleware</groupId>
-            <artifactId>framework</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.rumbleware</groupId>-->
+<!--            <artifactId>framework</artifactId>-->
+<!--            <version>1.0-SNAPSHOT</version>-->
+<!--        </dependency>-->
 
         <!-- CGLIB, only required and used for @Configuration usage: could be removed in future release of Spring -->
         <dependency>
